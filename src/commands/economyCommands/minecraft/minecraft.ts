@@ -151,7 +151,7 @@ async function confirmPurchase(
 }
 
 const minecraft: Command = {
-  description: 'Pirkt Minecraft preces',
+  description: 'Pirkt mantas OKDD Minecraft serverī\nŠī komanda ir izmantojama tikai OkDraudziņDauni serverī',
   data: {
     name: 'minecraft',
     description: 'Pirkt OKDD Minecraft servera mantas',
