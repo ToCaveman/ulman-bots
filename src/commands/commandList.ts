@@ -26,6 +26,7 @@ import palidziba from './economyCommands/palidziba/palidziba';
 import rulete from './economyCommands/rulete/rulete';
 import pabalsts from './economyCommands/pabalsts';
 import izsole from './devCommands/izsole/izsole';
+import minecraft from './economyCommands/minecraft/minecraft';
 // import kamPieder from './economyCommands/kamPieder/kamPieder';
 
 // komandu objektu saraksts
@@ -52,6 +53,7 @@ export const commandList: Command[] = [
   palidziba,
   rulete,
   pabalsts,
+  minecraft,
   // kamPieder,
 ];
 
