@@ -19,7 +19,7 @@ import UsableItemReturn from '../../../interfaces/UsableItemReturn';
 import { ItemAttributes, SpecialItemInProfile } from '../../../interfaces/UserProfile';
 import itemList, { ItemKey } from '../../../items/itemList';
 import intReply from '../../../utils/intReply';
-import { attributeItemSort } from '../inventars';
+import { attributeItemSort } from '../inventars/inventars';
 
 function makeComponents(
   itemsInInv: SpecialItemInProfile[],

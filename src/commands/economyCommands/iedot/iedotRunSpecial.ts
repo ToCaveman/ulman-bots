@@ -24,7 +24,7 @@ import checkUserSpecialItems from '../../../items/helpers/checkUserSpecialItems'
 import countFreeInvSlots from '../../../items/helpers/countFreeInvSlots';
 import itemList, { ItemKey } from '../../../items/itemList';
 import intReply from '../../../utils/intReply';
-import { attributeItemSort } from '../inventars';
+import { attributeItemSort } from '../inventars/inventars';
 import { cantPayTaxEmbed } from './iedot';
 
 async function iedotSpecialQuery(

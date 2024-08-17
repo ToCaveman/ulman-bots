@@ -11,7 +11,7 @@ import getDiscounts from '../../../items/helpers/getDiscounts';
 import getItemPrice from '../../../items/helpers/getItemPrice';
 import itemList, { ItemCategory } from '../../../items/itemList';
 import intReply from '../../../utils/intReply';
-import { ItemType, itemTypes } from '../inventars';
+import { ItemType, itemTypes } from '../inventars/inventars';
 import maksekeresData from '../zvejot/makskeresData';
 import allItemAutocomplete from './allItemAutocomplete';
 import { LotoOptions } from '../../../items/usableItems/loto';

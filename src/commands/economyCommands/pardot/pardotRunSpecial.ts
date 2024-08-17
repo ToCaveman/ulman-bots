@@ -21,7 +21,7 @@ import { AttributeItem } from '../../../interfaces/Item';
 import UserProfile, { ItemAttributes, SpecialItemInProfile } from '../../../interfaces/UserProfile';
 import itemList, { ItemKey } from '../../../items/itemList';
 import intReply from '../../../utils/intReply';
-import { attributeItemSort } from '../inventars';
+import { attributeItemSort } from '../inventars/inventars';
 import { PIRKT_PARDOT_NODOKLIS } from './pardot';
 
 function makeComponents(
