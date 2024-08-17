@@ -11,7 +11,8 @@
     "register:global": "bun src/registerGlobalCommands.ts",
     "lint": "eslint . --ext .ts",
     "updatedb": "bun src/utils/updatedb.ts",
-    "uploadEmojis": "bun src/uploadEmojis.ts"
+    "uploadEmojis": "bun src/uploadEmojis.ts",
+    "deleteEmojis": "bun src/deleteEmojis.ts"
   },
   "keywords": [],
   "author": "",
