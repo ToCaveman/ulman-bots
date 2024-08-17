@@ -12,6 +12,9 @@ declare namespace NodeJS {
     // īpašnieka ID
     DEV_ID: string;
 
+    // Bota ID
+    BOT_ID: string;
+
     // ulmaņbota API
     ULMANBOTS_API_URL: string;
 
