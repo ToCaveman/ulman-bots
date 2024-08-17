@@ -2,31 +2,13 @@ import { REST } from 'discord.js';
 import fs from 'fs';
 import path from 'path';
 import validateEnv from './utils/validateEnv';
-import { Routes } from 'discord-api-types/v10';
+import { RESTGetAPIApplicationEmojisResult, Routes } from 'discord-api-types/v10';
 import chalk from 'chalk';
+import { readFile } from 'fs/promises';
 
-validateEnv();
+if (!validateEnv()) process.exit(1);
 
 const rest = new REST({ version: '10' }).setToken(process.env.BOT_TOKEN);
-
-let totalCount = 0;
-
-function printDirs(dir: string, depth = 0) {
-  const files = fs.readdirSync(dir);
-  files.forEach(file => {
-    const filePath = path.join(dir, file);
-    const stats = fs.statSync(filePath);
-
-    if (stats.isDirectory()) {
-      const count = fs.readdirSync(filePath).filter(file => fs.statSync(path.join(filePath, file)).isFile()).length;
-      totalCount += count;
-
-      console.log(`${' '.repeat(depth)}${file} (${count} emoji)`);
-
-      printDirs(filePath, depth + 2);
-    }
-  });
-}
 
 const mimeTypes = {
   png: 'image/png',
@@ -34,52 +16,105 @@ const mimeTypes = {
   gif: 'image/gif',
 };
 
-let uploaded = 0;
+type EmojiData = {
+  name: string;
+  mimeType: string;
+  path: string;
+};
 
-async function upload(dir: string) {
+const localEmojis = new Map<string, EmojiData>();
+
+function getLocalEmojis(dir: string, depth = 0) {
   const files = fs.readdirSync(dir);
+  const folders = files.filter(file => fs.statSync(path.join(dir, file)).isDirectory()).toSorted();
 
-  for (const file of files) {
-    const filePath = path.join(dir, file);
-    const stats = fs.statSync(filePath);
+  folders.forEach((folder, idx) => {
+    const folderPath = path.join(dir, folder);
+    const emojiFiles = fs.readdirSync(folderPath);
 
-    if (stats.isDirectory()) {
-      const emojiFiles = fs.readdirSync(filePath);
+    let countInFolder = 0;
 
-      for (const emojiFile of emojiFiles) {
-        const stats = fs.statSync(path.join(filePath, emojiFile));
-        if (stats.isDirectory()) continue;
+    for (const emojiFile of emojiFiles) {
+      const stats = fs.statSync(path.join(folderPath, emojiFile));
+      if (stats.isDirectory()) continue;
 
-        const emojiFileSplit = emojiFile.split('.');
+      const emojiFileSplit = emojiFile.split('.');
 
-        const name = emojiFileSplit.slice(0, emojiFileSplit.length - 1).join('.');
-        const extension = emojiFileSplit[emojiFileSplit.length - 1] as keyof typeof mimeTypes;
+      const name = emojiFileSplit.slice(0, emojiFileSplit.length - 1).join('.');
+      const extension = emojiFileSplit[emojiFileSplit.length - 1] as keyof typeof mimeTypes;
 
-        if (!mimeTypes[extension]) {
-          console.log(chalk.red("[Error] ") + `Invalid file type: ${emojiFile}, must be one of: png, jpg, gif`);
-          continue;
-        }
-
-        const imageData = fs.readFileSync(path.join(filePath, emojiFile), 'base64');
-        const image = `data:${mimeTypes[extension]};base64,${imageData}`;
-
-        await rest.post(Routes.applicationEmojis(process.env.BOT_ID!), {
-          body: { name: emojiFile.split('.')[0], image },
-        });
-
-        uploaded++;
-        console.log(`Uploaded ${uploaded}/${totalCount} emoji (${emojiFile})`);
+      if (!mimeTypes[extension]) {
+        console.log(chalk.red('[Error] ') + `Invalid file type: ${emojiFile}, must be one of: png, jpg, gif`);
+        continue;
       }
 
-      upload(filePath);
+      countInFolder++;
+      localEmojis.set(name, { name, mimeType: mimeTypes[extension], path: path.join(folderPath, emojiFile) });
+    }
+
+    // uzzīmē man kociņu
+    console.log(
+      `${'  '.repeat(depth > 0 ? depth - 1 : 0)}${depth > 0 ? (idx === folders.length - 1 ? '└╴' : '├╴') : ''}${folder} (${countInFolder})`,
+    );
+
+    getLocalEmojis(folderPath, depth + 1);
+  });
+}
+
+async function getUploadedEmojis() {
+  const emojis = (await rest.get(Routes.applicationEmojis(process.env.BOT_ID!))) as RESTGetAPIApplicationEmojisResult;
+  return new Set<string>(emojis.items.map(emoji => emoji.name!));
+}
+
+async function uploadEmojis(uploadSet: Set<string>) {
+  const promises: Promise<any>[] = [];
+
+  let uploadedCount = 0;
+
+  const errors: any[] = [];
+
+  for (const name of uploadSet) {
+    promises.push(
+      readFile(localEmojis.get(name)!.path, 'base64')
+        .then(b64 =>
+          rest.post(Routes.applicationEmojis(process.env.BOT_ID!), {
+            body: { name, image: `data:${localEmojis.get(name)!.mimeType};base64,${b64}` },
+          }),
+        )
+        .then(() => uploadedCount++)
+        .catch(e => errors.push(e))
+        .finally(() => {
+          process.stdout.clearLine(0);
+          process.stdout.write(
+            `${chalk.blue(`\r[${uploadedCount}/${uploadSet.size}]`)} Uploaded "${name}" ${errors.length ? `(errors: ${errors.length})` : ''}`,
+          );
+        }),
+    );
+
+    await Promise.all(promises);
+
+    if (errors.length) {
+      for (const e of errors) {
+        console.error(e);
+      }
     }
   }
 }
 
 const emojisPath = path.join(__dirname, '../assets/emoji');
 
-printDirs(emojisPath);
+getLocalEmojis(emojisPath);
+const uploadedEmojis = await getUploadedEmojis();
 
-console.log(`\nTotal: ${totalCount} emoji`);
+console.log(`\nLocal emoji count: ${localEmojis.size}`);
+console.log(`Uploaded emoji count: ${uploadedEmojis.size}`);
 
-upload(emojisPath);
+const diff = new Set([...localEmojis.keys()].filter(emoji => !uploadedEmojis.has(emoji)));
+
+if (diff.size === 0) {
+  console.log(chalk.green('Nothing to upload'));
+} else {
+  console.log(`Uploading ${diff.size} emojis...`);
+  await uploadEmojis(diff);
+  console.log('\n' + chalk.green('Done!'));
+}
