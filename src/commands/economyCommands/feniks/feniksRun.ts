@@ -1,9 +1,8 @@
-import { ButtonInteraction, ChatInputCommandInteraction, ComponentType, Message } from 'discord.js';
+import { ButtonInteraction, ChatInputCommandInteraction, ComponentType } from 'discord.js';
 import addItems from '../../../economy/addItems';
 import addLati from '../../../economy/addLati';
 import findUser from '../../../economy/findUser';
 import setStats from '../../../economy/stats/setStats';
-import buttonHandler from '../../../embeds/buttonHandler';
 import commandColors from '../../../embeds/commandColors';
 import ephemeralReply from '../../../embeds/ephemeralReply';
 import errorEmbed from '../../../embeds/errorEmbed';
@@ -11,14 +10,13 @@ import itemString from '../../../embeds/helpers/itemString';
 import latiString from '../../../embeds/helpers/latiString';
 import smallEmbed from '../../../embeds/smallEmbed';
 import UserProfile from '../../../interfaces/UserProfile';
-import itemList from '../../../items/itemList';
-import interactionCache from '../../../utils/interactionCache';
+import itemList, { ItemCategory, ItemKey } from '../../../items/itemList';
 import intReply from '../../../utils/intReply';
 import { KazinoLikme } from '../rulete/rulete';
 import calcSpin from './calcSpin';
 import { FENIKS_MIN_LIKME } from './feniks';
-import feniksComponents from './feniksComponents';
-import feniksEmbed from './feniksEmbed';
+import { Dialogs } from '../../../utils/Dialogs';
+import feniksView, { FeniksState } from './feniksView';
 
 const DEFAULT_EMOJI_COUNT = 5;
 
@@ -91,15 +89,7 @@ export default async function feniksRun(
     if (!user) return intReply(i, errorEmbed);
   }
 
-  const promises: Promise<any>[] = [
-    intReply(i, {
-      content: '\u200B',
-      embeds: feniksEmbed(i, likme, likmeLati, DEFAULT_EMOJI_COUNT, isFree),
-      components: feniksComponents(likme, user, isFree, true),
-      fetchReply: true,
-    }),
-    addLati(userId, guildId, latiWon - (isFree ? 0 : likmeLati)),
-  ];
+  const promises: Promise<any>[] = [addLati(userId, guildId, latiWon - (isFree ? 0 : likmeLati))];
 
   if (!isFree) {
     promises.push(
@@ -113,7 +103,8 @@ export default async function feniksRun(
     );
   }
 
-  const [msg, userAfter] = (await Promise.all(promises)) as [Message, UserProfile];
+  const [userAfter] = (await Promise.all(promises)) as [UserProfile];
+
   if (!userAfter) {
     return i
       .editReply({
@@ -125,56 +116,72 @@ export default async function feniksRun(
 
   // testSpins(1_000_000);
 
-  buttonHandler(
-    i,
-    'feniks',
-    msg,
-    async int => {
-      if (int.componentType !== ComponentType.Button) return;
-      const { customId } = int;
-      if (customId === 'feniks_spin_again') {
-        return {
-          end: true,
-          after: () => feniksRun(int, likme, false),
-        };
+  const canSpinAgain = typeof likme === 'number' ? lati >= likme : lati >= FENIKS_MIN_LIKME;
+
+  const freeSpinsInInv: [ItemKey, number][] = userAfter.items
+    .filter(({ name }) => itemList[name].categories.includes(ItemCategory.BRIVGRIEZIENS))
+    .sort((a, b) => itemList[b.name].value - itemList[a.name].value)
+    .map(({ name, amount }) => [name, amount]);
+
+  const defaultState: FeniksState = {
+    likme,
+    likmeLati,
+    spinCount: DEFAULT_EMOJI_COUNT,
+    isFree,
+    spinRes,
+    wonLati: latiWon,
+
+    canSpinAgain,
+    freeSpinsInInv,
+
+    user: userAfter,
+    isSpinning: true,
+  };
+
+  const dialogs = new Dialogs(i, defaultState, feniksView, 'feniks', { time: 20000, isActive: true });
+
+  if (!(await dialogs.start())) {
+    return intReply(i, errorEmbed);
+  }
+
+  setTimeout(async () => {
+    dialogs.state.isSpinning = false;
+    await dialogs.edit();
+    dialogs.setActive(false);
+  }, isFree ? 300 : 1500);
+
+  dialogs.onClick(async int => {
+    const { customId, componentType } = int;
+
+    if (componentType !== ComponentType.Button) return;
+
+    if (customId === 'feniks_spin_again') {
+      return {
+        end: true,
+        after: () => feniksRun(int, likme, false),
+      };
+    }
+
+    if (customId.startsWith('freespin_')) {
+      const user = await findUser(userId, guildId);
+      if (!user) return { error: true };
+
+      const itemName = customId.split('_')[1];
+      const itemObj = itemList[itemName];
+
+      const itemInInv = user.items.find(item => item.name === itemName);
+      if (!itemInInv || itemInInv.amount < 1) {
+        await intReply(int, ephemeralReply(`Tavā inventārā nav **${itemString(itemObj)}**`));
+        return;
       }
-      if (customId.startsWith('freespin_')) {
-        const user = await findUser(userId, guildId);
-        if (!user) return { error: true };
 
-        const itemName = customId.split('_')[1];
-        const itemObj = itemList[itemName];
+      const freeSpinLikme = itemName.split('brivgriez')[1];
+      if (!freeSpinLikme) return { error: true };
 
-        const itemInInv = user.items.find(item => item.name === itemName);
-        if (!itemInInv || itemInInv.amount < 1) {
-          intReply(int, ephemeralReply(`Tavā inventārā nav **${itemString(itemObj)}**`));
-          return { end: true };
-        }
-
-        const freeSpinLikme = itemName.split('brivgriez')[1];
-        if (!freeSpinLikme) return { error: true };
-
-        return {
-          end: true,
-          after: () => feniksRun(int, +freeSpinLikme, true, itemName),
-        };
-      }
-    },
-    20000,
-    true,
-    true,
-  );
-
-  setTimeout(
-    async () => {
-      // guh
-      const a = interactionCache.get(`${userId}-${guildId}`)!.get('feniks')!;
-      interactionCache.get(`${userId}-${guildId}`)?.set('feniks', { ...a, isInteractionActive: false });
-      i.editReply({
-        embeds: feniksEmbed(i, likme, likmeLati, DEFAULT_EMOJI_COUNT, isFree, spinRes, latiWon),
-        components: feniksComponents(likme, userAfter, isFree),
-      }).catch(_ => _);
-    },
-    isFree ? 300 : 1500,
-  );
+      return {
+        end: true,
+        after: () => feniksRun(int, +freeSpinLikme, true, itemName),
+      };
+    }
+  });
 }
