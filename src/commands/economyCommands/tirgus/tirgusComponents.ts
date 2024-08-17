@@ -21,7 +21,7 @@ export default function tirgusComponents(
             const itemObj = itemList[key];
             return {
               label: capitalizeFirst(itemObj.nameNomVsk),
-              emoji: itemObj.emoji || '❓',
+              emoji: itemObj.emoji() || '❓',
               value: key,
               default: key === selectedListing,
             };

@@ -1,10 +1,10 @@
-import { APIEmbedField, ButtonInteraction, ChatInputCommandInteraction, Collection } from 'discord.js';
+import { APIEmbedField, ButtonInteraction, ChatInputCommandInteraction } from 'discord.js';
 import errorEmbed from '../../../embeds/errorEmbed';
-import iconEmojis from '../../../embeds/iconEmojis';
 import itemList, { ItemKey } from '../../../items/itemList';
 import User from '../../../schemas/User';
 import intReply from '../../../utils/intReply';
 import kamPiederEmbed from './kamPiederEmbed';
+import emoji from '../../../utils/emoji';
 
 const FIELD_COUNT = 15;
 
@@ -34,7 +34,7 @@ export default async function kamPiederRun(i: ChatInputCommandInteraction | Butt
       .sort((a, b) => b.items[0].amount - a.items[0].amount)
       .map(({ userId, items }) => ({
         name:
-          (userId === i.user.id ? `${iconEmojis.blueArrowRight} ` : '') +
+          (userId === i.user.id ? `${emoji('icon_top_arrow')} ` : '') +
           (i.guild!.members.cache.get(userId)?.user?.tag || 'Nezināms lietotājs'),
         value: `Daudzums: ${items[0].amount}`,
       }));

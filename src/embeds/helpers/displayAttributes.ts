@@ -46,7 +46,7 @@ export function displayAttributes(item: SpecialItemInProfile, inline = false) {
         str += wrap('Nopētījis: ', '', '**', inline);
 
         if (inline) str += itemList[foundItemKey].nameAkuVsk;
-        else str += makeEmojiString(itemList[foundItemKey].emoji!);
+        else str += itemList[foundItemKey].emoji();
       } else {
         const timeStr = millisToReadableTime(PETNIEKS_COOLDOWN - currTime + lastUsed);
         str += `Pēta: ${wrap(timeStr, '', '`', inline)}`;
@@ -56,7 +56,7 @@ export function displayAttributes(item: SpecialItemInProfile, inline = false) {
         str += `${inline ? ', ' : '\n'}Cepure: `;
 
         if (inline) str += capitalizeFirst(itemList[hat].nameNomVsk);
-        else str += makeEmojiString(itemList[hat].emoji!);
+        else str += itemList[hat].emoji();
       }
 
       return str;
@@ -90,7 +90,7 @@ export function displayAttributes(item: SpecialItemInProfile, inline = false) {
         str += `${inline ? ', ' : '\n'}Cepure: `;
 
         if (inline) str += capitalizeFirst(itemList[hat].nameNomVsk);
-        else str += makeEmojiString(itemList[hat].emoji!);
+        else str += itemList[hat].emoji();
       }
 
       return str;
@@ -114,7 +114,7 @@ export function displayAttributes(item: SpecialItemInProfile, inline = false) {
           str +=
             Object.entries(boilIevarijums.berries)
               .map(
-                ([name, amount]) => `${amount} ${itemList[name].emoji ? makeEmojiString(itemList[name].emoji!) : '❓'}`,
+                ([name, amount]) => `${amount} ${itemList[name].emoji() || '❓'}`,
               )
               .join(', ') + '\n';
         }

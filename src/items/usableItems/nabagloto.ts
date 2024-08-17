@@ -1,3 +1,4 @@
+import emoji from '../../utils/emoji';
 import loto, { LotoOptions } from './loto';
 
 export const nabagLotoOptions: LotoOptions = {
@@ -9,27 +10,27 @@ export const nabagLotoOptions: LotoOptions = {
   rewards: {
     '10_lati': {
       lati: 10,
-      emoji: '<:loto_10:1110909039367442454>',
+      emoji: () => emoji('loto_10'),
       chance: '*',
     },
     '15_lati': {
       lati: 15,
-      emoji: '<:loto_15:1110909040927723561>',
+      emoji: () => emoji('loto_15'),
       chance: 0.35,
     },
     '25_lati': {
       lati: 25,
-      emoji: '<:loto_25:1109595002331463750>',
+      emoji: () => emoji('loto_25'),
       chance: 0.25,
     },
     '100_lati': {
       lati: 100,
-      emoji: '<:loto_100:1109594522989633616>',
+      emoji: () => emoji('loto_100'),
       chance: 0.1,
     },
     '2x': {
       multiplier: 2,
-      emoji: '<:loto_reiz_2x:1110916839351005255>',
+      emoji: () => emoji('loto_reiz_2x'),
       chance: 0.25,
     },
   },

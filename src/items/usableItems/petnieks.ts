@@ -1,5 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder } from '@discordjs/builders';
-import { ButtonInteraction, ButtonStyle, ChatInputCommandInteraction, ComponentType } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChatInputCommandInteraction, ComponentType } from 'discord.js';
 import addItems from '../../economy/addItems';
 import editItemAttribute from '../../economy/editItemAttribute';
 import editMultipleItemAttributes from '../../economy/editMultipleItemAttributes';
@@ -45,7 +44,7 @@ function components(hatInInv: ItemInProfile | undefined, { hat }: ItemAttributes
     new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
         .setCustomId(hat ? `petnieks_remove_hat` : 'petnieks_add_hat')
-        .setEmoji(itemList.salaveca_cepure.emoji!)
+        .setEmoji(itemList.salaveca_cepure.emoji())
         .setLabel(hat ? 'Novilkt cepuri' : 'Uzvilkt cepuri')
         .setStyle(ButtonStyle.Primary)
         .setDisabled(disabled)

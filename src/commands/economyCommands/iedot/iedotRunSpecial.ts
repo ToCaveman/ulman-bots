@@ -16,7 +16,7 @@ import commandColors from '../../../embeds/commandColors';
 import embedTemplate from '../../../embeds/embedTemplate';
 import ephemeralReply from '../../../embeds/ephemeralReply';
 import { displayAttributes } from '../../../embeds/helpers/displayAttributes';
-import itemString, { itemStringCustom, makeEmojiString } from '../../../embeds/helpers/itemString';
+import itemString, { itemStringCustom } from '../../../embeds/helpers/itemString';
 import latiString from '../../../embeds/helpers/latiString';
 import Item, { AttributeItem } from '../../../interfaces/Item';
 import UserProfile, { ItemAttributes, SpecialItemInProfile } from '../../../interfaces/UserProfile';
@@ -101,7 +101,7 @@ function makeEmbed(
       ('notSellable' in itemObj
         ? `0 lati **(nepārdodama manta)**`
         : hasJuridisks
-          ? `0 lati **(${makeEmojiString(itemList.juridiska_zivs.emoji!)} juridiska persona)**`
+          ? `0 lati **(${itemList.juridiska_zivs.emoji()} juridiska persona)**`
           : `${taxLati ? latiString(taxLati) : '-'} (${Math.floor(user.giveTax * 100)}% no mantu kopējās vērtības)`),
   }).embeds!;
 }
@@ -146,7 +146,7 @@ function makeComponents(
                         : itemObj.value,
                     )} | `) + displayAttributes(item, true),
               value: item._id!,
-              emoji: (itemObj.customEmoji ? itemObj.customEmoji(item.attributes) : itemObj.emoji) || '❓',
+              emoji: (itemObj.customEmoji ? itemObj.customEmoji(item.attributes) : itemObj.emoji()) || '❓',
               default: !!selectedIds.length && selectedIds!.includes(item._id!),
             })),
         ),

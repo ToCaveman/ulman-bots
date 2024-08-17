@@ -1,11 +1,11 @@
 import axios from 'axios';
 import { ActionRowBuilder, AttachmentBuilder, ButtonBuilder, ButtonStyle, Message } from 'discord.js';
-import iconEmojis from '../embeds/iconEmojis';
 import smallEmbed from '../embeds/smallEmbed';
 import itemList from '../items/itemList';
 import { ULMANBOTA_ROLE_ID } from '../izsoles/izsoleEmbed';
 import calendarRewards from './calendarRewards';
 import generateCalendarImage from './generateCalendarImage';
+import emoji from '../utils/emoji';
 
 export default async function adventeMsgHandler(msg: Message, apiCommand: string, content: string[]) {
   if (!process.env.ADVENTE_CHANNEL) return;
@@ -13,7 +13,7 @@ export default async function adventeMsgHandler(msg: Message, apiCommand: string
   const adventeChannel = msg.client.channels.cache.get(process.env.ADVENTE_CHANNEL);
   if (!adventeChannel || !adventeChannel.isTextBased()) {
     return msg.reply(
-      smallEmbed(`${iconEmojis.cross} Adventes kanāls ar id \`${process.env.ADVENTE_CHANNEL}\` neeksistē`, 0xee0000)
+      smallEmbed(`${emoji('icon_cross')} Adventes kanāls ar id \`${process.env.ADVENTE_CHANNEL}\` neeksistē`, 0xee0000)
     );
   }
 
@@ -34,7 +34,7 @@ export default async function adventeMsgHandler(msg: Message, apiCommand: string
 
       const reward = calendarRewards[date];
       if (date <= 24) {
-        button.setEmoji('item' in reward ? itemList[reward.item].emoji! : { id: '911400812754915388', name: 'lats' });
+        button.setEmoji('item' in reward ? itemList[reward.item].emoji() : { id: '911400812754915388', name: 'lats' });
       }
 
       const components = [new ActionRowBuilder<ButtonBuilder>().addComponents(button)];
@@ -56,15 +56,15 @@ export default async function adventeMsgHandler(msg: Message, apiCommand: string
           headers: { Authorization: `Bearer ${process.env.UPSTASH_REDIS_TOKEN}` },
         });
 
-        return msg.reply(smallEmbed(`${iconEmojis.checkmark} Aizsūtīts jauns adventes kalendārs`, 0x00ff00));
+        return msg.reply(smallEmbed(`${emoji('icon_check1')} Aizsūtīts jauns adventes kalendārs`, 0x00ff00));
       }
 
       await messageToEdit.edit({ files: [attachment], components });
-      return msg.reply(smallEmbed(`${iconEmojis.checkmark} Rediģēts adventes kalendārs`, 0x00ff00));
+      return msg.reply(smallEmbed(`${emoji('icon_check1')} Rediģēts adventes kalendārs`, 0x00ff00));
     } catch (e) {
       console.log(e);
       return msg.reply(
-        smallEmbed(`${iconEmojis.cross} Neizdevās aizsūtīt ziņu adventes kanālā (${adventeChannel.id})`, 0xee0000)
+        smallEmbed(`${emoji('icon_cross')} Neizdevās aizsūtīt ziņu adventes kanālā (${adventeChannel.id})`, 0xee0000)
       );
     }
   }

@@ -17,11 +17,11 @@ import {
   ComponentType,
 } from 'discord.js';
 import buttonHandler from '../../embeds/buttonHandler';
-import iconEmojis from '../../embeds/iconEmojis';
 import addLati from '../../economy/addLati';
 import addItems from '../../economy/addItems';
 import smallEmbed from '../../embeds/smallEmbed';
 import commandColors from '../../embeds/commandColors';
+import emoji from '../../utils/emoji';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function testLaimesti(options: LotoOptions, count: number) {
@@ -49,12 +49,12 @@ function testLaimesti(options: LotoOptions, count: number) {
 export type LotoReward = {
   lati: number;
   multiplier?: never;
-  emoji: string;
+  emoji: () => string;
   chance: ChanceValue;
 } | {
   lati?: never;
   multiplier: number;
-  emoji: string;
+  emoji: () => string;
   chance: ChanceValue;
 }
 
@@ -133,24 +133,21 @@ function lotoEmbed(
     fields: [
       {
         name: 'Atrastie lati:',
-        value: latiArr.length ? latiArr.map(item => item.reward?.emoji).join(' + ') : '-',
+        value: latiArr.length ? latiArr.map(item => item.reward?.emoji()).join(' + ') : '-',
         inline: false,
       },
       {
         name: 'Atrastie reizinātāji:',
         value:
-          `${multiplierArr.length ? multiplierArr.map(item => item.reward?.emoji).join(' + ') : '-'}\n\n` +
+          `${multiplierArr.length ? multiplierArr.map(item => item.reward?.emoji()).join(' + ') : '-'}\n\n` +
           (scratchesLeft
-            ? `_Spied uz_ ${LOTO_QUESTION_MARK_EMOJI} _lai atklātu balvas_`
+            ? `_Spied uz_ ${emoji('loto_question_mark')} _lai atklātu balvas_`
             : `**KOPĒJAIS LAIMESTS: __${totalWin}__ lati**`),
         inline: false,
       },
     ],
   }).embeds;
 }
-
-// const LOTO_QUESTION_MARK_EMOJI = '<a:loto_question_mark:1107683760402616412>';
-const LOTO_QUESTION_MARK_EMOJI = '<:loto_question_mark:1110920964142792744>';
 
 function lotoComponents(
   itemKey: ItemKey,
@@ -169,17 +166,17 @@ function lotoComponents(
           const lotoArrIndex = row * columns + index;
           const { reward, scratched } = lotoArray[lotoArrIndex];
 
-          const emoji: ComponentEmojiResolvable =
+          const btnEmoji: ComponentEmojiResolvable =
             hasEnded || scratched
               ? reward
-                ? reward.emoji //
-                : iconEmojis.emptyEmoji
-              : LOTO_QUESTION_MARK_EMOJI;
+                ? reward.emoji() //
+                : emoji('blank')
+              : emoji('loto_question_mark');
 
           const btn = new ButtonBuilder()
             .setCustomId(`${itemKey}-${lotoArrIndex}`)
             .setStyle(scratched ? (reward ? ButtonStyle.Success : ButtonStyle.Danger) : ButtonStyle.Secondary)
-            .setEmoji(emoji)
+            .setEmoji(btnEmoji)
             .setDisabled(hasEnded);
 
           // temp
@@ -210,7 +207,7 @@ function lotoComponents(
           .setCustomId('loto_izmantot_velreiz')
           .setStyle(ButtonStyle.Primary)
           .setLabel(`Izmantot vēlreiz (${lotoInInv})`)
-          .setEmoji(itemList[itemKey].emoji || '❓')
+          .setEmoji(itemList[itemKey].emoji() || '❓')
       )
     );
   }

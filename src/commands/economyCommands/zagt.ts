@@ -12,11 +12,11 @@ import { displayAttributes } from '../../embeds/helpers/displayAttributes';
 import itemString from '../../embeds/helpers/itemString';
 import latiString from '../../embeds/helpers/latiString';
 import millisToReadableTime from '../../embeds/helpers/millisToReadableTime';
-import iconEmojis from '../../embeds/iconEmojis';
 import Command from '../../interfaces/Command';
 import itemList from '../../items/itemList';
 import intReply from '../../utils/intReply';
 import { statusList } from './profils';
+import emoji from '../../utils/emoji';
 
 const ZAGT_MIN_LATI = 100;
 const ZAGT_MAX_LATI = 1000;
@@ -108,7 +108,7 @@ const zagt: Command = {
         embedTemplate({
           i,
           color: this.color,
-          title: `${iconEmojis.checkmark} Zagt no Valsts Bankas`,
+          title: `${emoji('icon_check1')} Zagt no Valsts Bankas`,
           description:
             `No Valsts bankas tu nozagi ${latiString(stolenAmount, true, true)}\n\n` +
             `Tavam inventāram tika pievienots:\n` +
@@ -181,7 +181,7 @@ const zagt: Command = {
         color: this.color,
         content: `${target}`,
         title:
-          `${didSteal ? iconEmojis.checkmark : iconEmojis.cross} Zagt ` +
+          `${didSteal ? emoji('icon_check1') : emoji('icon_cross')} Zagt ` +
           (hasLaupitajs ? `(ar "${statusList.laupitajs}" statusu)` : ''),
         description: text,
         fields: [

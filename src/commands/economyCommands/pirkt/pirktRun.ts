@@ -29,7 +29,7 @@ export default async function pirktRun(
   i: ChatInputCommandInteraction | ButtonInteraction,
   itemToBuyKey: string,
   amountToBuy: number,
-  embedColor: number
+  embedColor: number,
 ): Promise<any> {
   const userId = i.user.id;
   const guildId = i.guildId!;
@@ -46,8 +46,8 @@ export default async function pirktRun(
       ephemeralReply(
         `Tev nepietiek naudas lai nopirktu **${itemString(itemToBuy, amountToBuy, true)}**\n` +
           `Cena: ${latiString(totalCost)}\n` +
-          `Tev ir ${latiString(user.lati)}`
-      )
+          `Tev ir ${latiString(user.lati)}`,
+      ),
     );
   }
 
@@ -58,8 +58,8 @@ export default async function pirktRun(
       i,
       ephemeralReply(
         `Tev nepietiek vietas inventārā lai nopirktu **${itemString(itemToBuy, amountToBuy, true)}**\n` +
-          `Tev ir **${freeSlots}** brīvas vietas`
-      )
+          `Tev ir **${freeSlots}** brīvas vietas`,
+      ),
     );
   }
 
@@ -103,7 +103,7 @@ export default async function pirktRun(
             inline: true,
           },
         ],
-      })
+      }),
     );
   }
 
@@ -114,7 +114,7 @@ export default async function pirktRun(
       .setCustomId('pirkt_izmantot')
       .setLabel(`Izmantot (${resItems.amount})`)
       .setStyle(ButtonStyle.Primary)
-      .setEmoji(itemToBuy.emoji || { name: '❓' })
+      .setEmoji(itemToBuy.emoji() || '❓'),
   );
 
   const replyMessage = embedTemplate({
@@ -163,8 +163,8 @@ export default async function pirktRun(
             .setCustomId('pirkt_izmantot')
             .setLabel(`Izmantot (${resItems.amount})`)
             .setStyle(buttonStyle)
-            .setEmoji(itemToBuy.emoji || { name: '❓' })
-            .setDisabled(true)
+            .setEmoji(itemToBuy.emoji() || '❓')
+            .setDisabled(true),
         );
 
         return {
@@ -176,6 +176,6 @@ export default async function pirktRun(
 
       return;
     },
-    10000
+    10000,
   );
 }

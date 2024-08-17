@@ -4,6 +4,7 @@ import UsableItemReturn from './UsableItemReturn';
 import { ItemAttributes, SpecialItemInProfile } from './UserProfile';
 import { LotoOptions } from '../items/usableItems/loto';
 import { VersionString } from '../commands/economyCommands/palidziba/jaunumi/updatesList';
+import emoji from '../utils/emoji';
 
 // masīvs ar vismaz vienu vērtību
 interface categories extends Array<ItemCategory> {
@@ -17,6 +18,7 @@ export type UsableItemFunc = (
   itemKey: ItemKey,
   specialItem?: SpecialItemInProfile,
 ) => Promise<UsableItemReturn> | UsableItemReturn;
+
 
 export interface BaseItem {
   // īss apraksts par mantu
@@ -33,8 +35,10 @@ export interface BaseItem {
   nameAkuDsk: string;
   // vai ir vīriešu dzimtes lietvārds
   isVirsiesuDzimte: boolean;
-  // emoji mantām, piem. <:virve:922501450544857098>
-  emoji: APIMessageComponentEmoji | null;
+  
+  // emoji mantām
+  emoji(): string;
+
   // bildes links
   imgLink: string | null;
   // kategorijas - veikals, zivis utt
@@ -90,7 +94,7 @@ export interface AttributeItem<A extends Partial<ItemAttributes>> extends Omit<U
   // speciāla vērtība, piem. makšķeres izturība ietekmē vērtību
   customValue?: (attributes: A) => number;
   // speciāls emoji kas mainās atkarībā no atribūtiem
-  customEmoji?: (attributes: A) => APIMessageComponentEmoji;
+  customEmoji?: (attributes: A) => string;
   // izmantot vairākus vienlaicīgi
   useMany?: UseManyType;
 }

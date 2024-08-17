@@ -1,15 +1,16 @@
 import { ChanceValue } from '../../../items/helpers/chance';
+import emoji from '../../../utils/emoji';
 
 export interface Laimests {
   chance: ChanceValue;
-  emoji: string;
+  emoji: () => string;
   multipliers: Record<number, number>;
 }
 
 const feniksLaimesti: Record<string, Laimests> = {
   varde: {
     chance: '*', // 0.28
-    emoji: '<:f_varde:1013586155117219970>',
+    emoji: () => emoji('f_varde'),
     multipliers: {
       2: 0.05,
       3: 0.1,
@@ -19,7 +20,7 @@ const feniksLaimesti: Record<string, Laimests> = {
   },
   zoss: {
     chance: 0.19,
-    emoji: '<:f_zoss:1013570309745561692>',
+    emoji: () => emoji('f_zoss'),
     multipliers: {
       2: 0.1,
       3: 0.25,
@@ -29,7 +30,7 @@ const feniksLaimesti: Record<string, Laimests> = {
   },
   trolaseja: {
     chance: 0.15,
-    emoji: '<:f_trolaseja:1013586153603072101>',
+    emoji: () => emoji('f_trolaseja'),
     multipliers: {
       2: 0.5,
       3: 1.2,
@@ -39,7 +40,7 @@ const feniksLaimesti: Record<string, Laimests> = {
   },
   tjz: {
     chance: 0.12,
-    emoji: '<:f_tjz:1013563347691634739>',
+    emoji: () => emoji('f_tjz'),
     multipliers: {
       2: 1,
       3: 3,
@@ -49,7 +50,7 @@ const feniksLaimesti: Record<string, Laimests> = {
   },
   vacaps: {
     chance: 0.09,
-    emoji: '<:f_vacaps:1013563349365170277>',
+    emoji: () => emoji('f_vacaps'),
     multipliers: {
       2: 2,
       3: 5,
@@ -59,7 +60,7 @@ const feniksLaimesti: Record<string, Laimests> = {
   },
   radio: {
     chance: 0.07,
-    emoji: '<:f_radio:1013563346554990613>',
+    emoji: () => emoji('f_radio'),
     multipliers: {
       2: 4,
       3: 10,
@@ -69,7 +70,7 @@ const feniksLaimesti: Record<string, Laimests> = {
   },
   kabacis: {
     chance: 0.05,
-    emoji: '<:f_kabacis:1013548145591988224>',
+    emoji: () => emoji('f_kabacis'),
     multipliers: {
       2: 6,
       3: 14,
@@ -79,7 +80,7 @@ const feniksLaimesti: Record<string, Laimests> = {
   },
   ulmanis: {
     chance: 0.035,
-    emoji: '<a:f_ulmanis:1013513084654067893>',
+    emoji: () => emoji('f_ulmanis'),
     multipliers: {
       2: 10,
       3: 25,
@@ -89,7 +90,7 @@ const feniksLaimesti: Record<string, Laimests> = {
   },
   petnieks: {
     chance: 0.015,
-    emoji: '<a:f_petnieks:1013477350027042938>',
+    emoji: () => emoji('f_petnieks'),
     multipliers: {
       2: 15,
       3: 35,

@@ -2,16 +2,10 @@ import { ButtonInteraction, ChatInputCommandInteraction } from 'discord.js';
 import commandColors from '../../../embeds/commandColors';
 import embedTemplate from '../../../embeds/embedTemplate';
 import latiString from '../../../embeds/helpers/latiString';
-import iconEmojis from '../../../embeds/iconEmojis';
 import { KazinoLikme } from '../rulete/rulete';
 import { CalcSpinRes } from './calcSpin';
 import feniksLaimesti from './feniksLaimesti';
-import multiplierEmojis from './multiplierEmojis';
-
-const spinEmoji = {
-  id: '1030179417810534503',
-  name: 'spin',
-};
+import emoji from '../../../utils/emoji';
 
 export default function feniksEmbed(
   i: ChatInputCommandInteraction | ButtonInteraction,
@@ -22,10 +16,14 @@ export default function feniksEmbed(
   spinRes?: CalcSpinRes,
   wonLati?: number
 ) {
-  const { emptyEmoji, arrow_1_left, arrow_1_right, arrow_2_left, arrow_2_right } = iconEmojis;
+  const emptyEmoji = emoji('blank');
+  const arrow_1_left = emoji('icon_arrow_1_left');
+  const arrow_1_right = emoji('icon_arrow_1_right');
+  const arrow_2_left = emoji('icon_arrow_2_left');
+  const arrow_2_right = emoji('icon_arrow_2_right');
 
   let title = 'Griežas...';
-  let emojiRow = Array(spinCount).fill(`<a:${spinEmoji.name}:${spinEmoji.id}>`).join('');
+  let emojiRow = Array(spinCount).fill(emoji('f_spin')).join('');
   let multiplierRow = Array(spinCount).fill(emptyEmoji).join('');
   const isSpinning = !spinRes && wonLati === undefined;
 
@@ -39,7 +37,7 @@ export default function feniksEmbed(
     const multiplierArr: string[] = [];
 
     for (const { name, count, isWinner } of emojiGroups) {
-      emojiArr.push(...Array(count).fill(feniksLaimesti[name].emoji));
+      emojiArr.push(...Array(count).fill(feniksLaimesti[name].emoji()));
 
       if (!isWinner) {
         multiplierArr.push(...Array(count).fill(emptyEmoji));
@@ -49,7 +47,7 @@ export default function feniksEmbed(
             .fill('')
             .map((_, i) => {
               const emojiName = `${name}_${count}_${i + 1}`;
-              return `<:${emojiName}:${multiplierEmojis[emojiName]}>`;
+              return emoji(emojiName);
             })
         );
       }

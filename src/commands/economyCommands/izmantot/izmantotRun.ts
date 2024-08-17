@@ -1,5 +1,6 @@
 import {
   ActionRowBuilder,
+  ButtonBuilder,
   ButtonInteraction,
   ButtonStyle,
   ChatInputCommandInteraction,
@@ -14,7 +15,6 @@ import embedTemplate from '../../../embeds/embedTemplate';
 import ItemString from '../../../embeds/helpers/itemString';
 import itemList from '../../../items/itemList';
 import buttonHandler from '../../../embeds/buttonHandler';
-import { ButtonBuilder } from '@discordjs/builders';
 import izmantotRunSpecial from './izmantotRunSpecial';
 import { UsableItem } from '../../../interfaces/Item';
 import intReply from '../../../utils/intReply';
@@ -22,7 +22,7 @@ import intReply from '../../../utils/intReply';
 export default async function izmantotRun(
   i: ChatInputCommandInteraction | ButtonInteraction,
   itemToUseKey: string,
-  embedColor: number
+  embedColor: number,
 ): Promise<any> {
   const userId = i.user.id;
   const guildId = i.guildId!;
@@ -65,7 +65,7 @@ export default async function izmantotRun(
       .setCustomId('izmantot_velreiz')
       .setLabel(`Izmantot vēlreiz (${itemsToUseLeft})`)
       .setStyle(ButtonStyle.Primary)
-      .setEmoji(itemToUse.emoji || { name: '❓' })
+      .setEmoji(itemToUse.emoji() || '❓'),
   );
 
   const replyMessage = embedTemplate({
@@ -103,8 +103,8 @@ export default async function izmantotRun(
             .setCustomId('izmantot_velreiz')
             .setLabel(`Izmantot vēlreiz (${itemsToUseLeft})`)
             .setStyle(buttonStyle)
-            .setEmoji(itemToUse.emoji || { name: '❓' })
-            .setDisabled(true)
+            .setEmoji(itemToUse.emoji() || '❓')
+            .setDisabled(true),
         );
 
         return {
@@ -116,6 +116,6 @@ export default async function izmantotRun(
 
       return;
     },
-    10000
+    10000,
   );
 }

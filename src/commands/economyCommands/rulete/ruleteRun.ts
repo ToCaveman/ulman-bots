@@ -22,7 +22,7 @@ import intReply from '../../../utils/intReply';
 import generateRulete, { GenerateRuleteRes, RulColors } from './generateRulete';
 import { KazinoLikme } from './rulete';
 import { RulPosition, rulPositions } from './ruleteData';
-import ruleteEmojis from './ruleteEmojis';
+import emoji from '../../../utils/emoji';
 
 const colorsLat: Record<RulColors, string> = {
   black: 'melns',
@@ -50,9 +50,9 @@ function ruleteEmbed(
   const isPosNum = typeof position === 'number';
 
   let emojisStr = '';
-  for (let j = 1; j <= 6; j++) {
-    const key = spinning ? `spin_${j}` : `rul_${j}_${num < 10 ? `0${num}` : num}`;
-    emojisStr += `<${spinning ? 'a' : ''}:${key}:${ruleteEmojis[key]}>`;
+  for (let j = 0; j < 8; j++) {
+    const key = spinning ? `rul_spin_${j}` : `rul_${num}_${j}`;
+    emojisStr += emoji(key);
     if (j === 3) emojisStr += '\n';
   }
 

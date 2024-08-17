@@ -31,7 +31,7 @@ import divaina_zivs from './usableItems/divaina_zivs';
 import loto_zivs, { generateFishCount } from './usableItems/loto_zivs';
 import petniekzivs, { PETNIEKZIVS_STATUS_TIME } from './usableItems/petniekzivs';
 import kakis, { foodDataPercentage, kakisFedState, kakisFoodData, KAKIS_MAX_FEED } from './usableItems/kakis';
-import itemString, { makeEmojiString } from '../embeds/helpers/itemString';
+import itemString from '../embeds/helpers/itemString';
 import piparkuka from './usableItems/piparkuka';
 import nabagloto, { nabagLotoOptions } from './usableItems/nabagloto';
 import ulmanloto, { ulmanlotoOptions } from './usableItems/ulmanloto';
@@ -39,6 +39,7 @@ import gazes_plits, { GazesPlitsActionType } from './usableItems/gazes_plits';
 import ievarijums from './usableItems/ievarijums';
 import oga, { BerryProperties, ogaInfo } from './usableItems/oga';
 import kruma_sekla from './usableItems/kruma_sekla';
+import emoji from '../utils/emoji';
 
 export type ItemKey = string;
 
@@ -70,10 +71,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'koka makšķeri',
     nameAkuDsk: 'koka makšķeres',
     isVirsiesuDzimte: false,
-    emoji: {
-      id: '1009557004651601931',
-      name: 'kokamakskere',
-    },
+    emoji: () => emoji('koka_makskere'),
     imgLink: 'https://www.ulmanbots.lv/images/items/kokamakskere.png',
     categories: [ItemCategory.VEIKALS, ItemCategory.MAKSKERE],
     value: 100,
@@ -93,10 +91,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'latLoto biļeti',
     nameAkuDsk: 'latLoto biļetes',
     isVirsiesuDzimte: false,
-    emoji: {
-      id: '1009557006098645062',
-      name: 'latloto',
-    },
+    emoji: () => emoji('latloto'),
     imgLink: 'https://www.ulmanbots.lv/images/items/latloto.png',
     categories: [ItemCategory.VEIKALS, ItemCategory.LOTO],
     value: 50,
@@ -115,10 +110,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'nazi',
     nameAkuDsk: 'nažus',
     isVirsiesuDzimte: true,
-    emoji: {
-      id: '1009557010305531944',
-      name: 'nazis',
-    },
+    emoji: () => emoji('nazis'),
     imgLink: 'https://www.ulmanbots.lv/images/items/nazis.png',
     categories: [ItemCategory.VEIKALS],
     value: 125,
@@ -134,10 +126,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'virvi',
     nameAkuDsk: 'virves',
     isVirsiesuDzimte: false,
-    emoji: {
-      id: '1009557012855652453',
-      name: 'virve',
-    },
+    emoji: () => emoji('virve'),
     imgLink: 'https://www.ulmanbots.lv/images/items/virve.png',
     categories: [ItemCategory.VEIKALS],
     value: 10,
@@ -156,10 +145,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'zemeņu Rasēnu',
     nameAkuDsk: 'zemeņu Rasēnus',
     isVirsiesuDzimte: true,
-    emoji: {
-      id: '1009557014143324190',
-      name: 'zemenu_rasens',
-    },
+    emoji: () => emoji('zemenu_rasens'),
     imgLink: 'https://www.ulmanbots.lv/images/items/zemenu_rasens.png',
     categories: [ItemCategory.VEIKALS],
     value: 75,
@@ -184,11 +170,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'dīvaino burkānu',
     nameAkuDsk: 'dīvainos burkānus',
     isVirsiesuDzimte: true,
-    emoji: {
-      id: '1029745787850194994',
-      name: 'divainais_burkans',
-      animated: true,
-    },
+    emoji: () => emoji('divainais_burkans'),
     imgLink: 'https://www.ulmanbots.lv/images/items/divainais_burkans.gif',
     categories: [ItemCategory.VEIKALS],
     value: 5000,
@@ -220,11 +202,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'dižLoto biļeti',
     nameAkuDsk: 'dižLoto biļetes',
     isVirsiesuDzimte: false,
-    emoji: {
-      id: '1029738364875837500',
-      name: 'dizloto',
-      animated: true,
-    },
+    emoji: () => emoji('dizloto'),
     imgLink: 'https://www.ulmanbots.lv/images/items/dizloto.gif',
     categories: [ItemCategory.VEIKALS, ItemCategory.LOTO],
     value: 250,
@@ -247,11 +225,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'dīvaino makšķeri',
     nameAkuDsk: 'dīvainās makšķeres',
     isVirsiesuDzimte: false,
-    emoji: {
-      id: '1029750421624979548',
-      name: 'divaina_makskere',
-      animated: true,
-    },
+    emoji: () => emoji('divaina_makskere'),
     imgLink: 'https://www.ulmanbots.lv/images/items/divaina_makskere.gif',
     categories: [ItemCategory.VEIKALS, ItemCategory.MAKSKERE],
     value: 450,
@@ -273,10 +247,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'mugursomu',
     nameAkuDsk: 'mugursomas',
     isVirsiesuDzimte: false,
-    emoji: {
-      id: '1009557008850092059',
-      name: 'mugursoma',
-    },
+    emoji: () => emoji('mugursoma'),
     imgLink: 'https://www.ulmanbots.lv/images/items/mugursoma.png',
     categories: [ItemCategory.VEIKALS],
     value: 175,
@@ -292,10 +263,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'piena spaini',
     nameAkuDsk: 'piena spaiņus',
     isVirsiesuDzimte: true,
-    emoji: {
-      id: '1030251381350748201',
-      name: 'piena_spainis',
-    },
+    emoji: () => emoji('piena_spainis'),
     imgLink: 'https://www.ulmanbots.lv/images/items/piena_spainis.png',
     categories: [ItemCategory.VEIKALS],
     value: 25,
@@ -315,10 +283,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'kaķu barību',
     nameAkuDsk: 'kaķu barības',
     isVirsiesuDzimte: false,
-    emoji: {
-      id: '1035930140242366464',
-      name: 'kaku_bariba',
-    },
+    emoji: () => emoji('kaku_bariba'),
     imgLink: 'https://www.ulmanbots.lv/images/items/kaku_bariba.png',
     categories: [ItemCategory.VEIKALS],
     value: 20,
@@ -343,11 +308,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'dīvaino mugursomu',
     nameAkuDsk: 'dīvainās mugursomas',
     isVirsiesuDzimte: false,
-    emoji: {
-      id: '1029772502542594089',
-      name: 'divaina_mugursoma',
-      animated: true,
-    },
+    emoji: () => emoji('divaina_mugursoma'),
     imgLink: 'https://www.ulmanbots.lv/images/items/divaina_mugursoma.gif',
     categories: [ItemCategory.TIRGUS],
     tirgusPrice: { items: { mugursoma: 3 } },
@@ -370,10 +331,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'kafijas aparātu',
     nameAkuDsk: 'kafijas aparātus',
     isVirsiesuDzimte: true,
-    emoji: {
-      id: '1011300411191341139',
-      name: 'kafijas_aparats',
-    },
+    emoji: () => emoji('kafijas_aparats'),
     imgLink: 'https://www.ulmanbots.lv/images/items/kafijas_aparats.png',
     categories: [ItemCategory.TIRGUS],
     value: 200,
@@ -404,19 +362,13 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'pētnieku',
     nameAkuDsk: 'pētniekus',
     isVirsiesuDzimte: true,
-    emoji: {
-      id: '1029800146638213160',
-      name: 'petnieks',
-    },
+    emoji: () => emoji('petnieks'),
     customEmoji: function ({ hat }) {
       if (hat === 'salaveca_cepure') {
-        return {
-          id: '1043304197631783042',
-          name: 'petnieks_zsv',
-        };
+        return emoji('petnieks_zsv');
       }
 
-      return this.emoji!;
+      return this.emoji();
     },
     imgLink: 'https://www.ulmanbots.lv/images/items/petnieks.png',
     categories: [ItemCategory.TIRGUS],
@@ -445,11 +397,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'loto makšķeri',
     nameAkuDsk: 'loto makšķeres',
     isVirsiesuDzimte: false,
-    emoji: {
-      id: '1029752905470849105',
-      name: 'loto_makskere',
-      animated: true,
-    },
+    emoji: () => emoji('loto_makskere'),
     imgLink: 'https://www.ulmanbots.lv/images/items/loto_makskere.gif',
     categories: [ItemCategory.TIRGUS, ItemCategory.MAKSKERE],
     value: 500,
@@ -475,10 +423,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'lūžņu makšķeri',
     nameAkuDsk: 'lūžņu makšķeres',
     isVirsiesuDzimte: false,
-    emoji: {
-      id: '1028069745251057684',
-      name: 'luznu_makskere',
-    },
+    emoji: () => emoji('luznu_makskere'),
     imgLink: 'https://www.ulmanbots.lv/images/items/luznu_makskere.png',
     categories: [ItemCategory.TIRGUS, ItemCategory.MAKSKERE],
     value: 100,
@@ -506,10 +451,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'naudas maisu',
     nameAkuDsk: 'naudas maisus',
     isVirsiesuDzimte: true,
-    emoji: {
-      id: '1029800143832240148',
-      name: 'naudas_maiss',
-    },
+    emoji: () => emoji('naudas_maiss'),
     imgLink: 'https://www.ulmanbots.lv/images/items/naudas_maiss.png',
     categories: [ItemCategory.TIRGUS],
     value: 10,
@@ -557,19 +499,13 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'kaķi',
     nameAkuDsk: 'kaķus',
     isVirsiesuDzimte: true,
-    emoji: {
-      id: '1032294560816173136',
-      name: 'kakis',
-    },
+    emoji: () => emoji('kakis'),
     customEmoji: function ({ hat }) {
       if (hat === 'salaveca_cepure') {
-        return {
-          id: '1043304195828240495',
-          name: 'kakis_zsv',
-        };
+        return emoji('kakis_zsv');
       }
 
-      return this.emoji!;
+      return this.emoji();
     },
     imgLink: 'https://www.ulmanbots.lv/images/items/kakis.png',
     categories: [ItemCategory.TIRGUS],
@@ -610,10 +546,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'gāzes plīti',
     nameAkuDsk: 'gāzes plītis',
     isVirsiesuDzimte: false,
-    emoji: {
-      id: '1110984524273303565',
-      name: 'gazes_plits',
-    },
+    emoji: () => emoji('gazes_plits'),
     imgLink: null,
     categories: [ItemCategory.TIRGUS],
     value: 50,
@@ -636,10 +569,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'akumulatoru',
     nameAkuDsk: 'akumulatorus',
     isVirsiesuDzimte: true,
-    emoji: {
-      id: '1199417487033380874',
-      name: 'akumulators',
-    },
+    emoji: () => emoji('akumulators'),
     imgLink: 'https://beanson.lv/images/akumulators.png',
     categories: [ItemCategory.ATKRITUMI],
     value: 20,
@@ -652,10 +582,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'kartona kasti',
     nameAkuDsk: 'kartona kastes',
     isVirsiesuDzimte: false,
-    emoji: {
-      id: '1009557002667687958',
-      name: 'kartona_kaste',
-    },
+    emoji: () => emoji('kartona_kaste'),
     imgLink: 'https://www.ulmanbots.lv/images/items/kartona_kaste.png',
     categories: [ItemCategory.ATKRITUMI],
     value: 15,
@@ -670,10 +597,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'stikla pudeli',
     nameAkuDsk: 'stikla pudeles',
     isVirsiesuDzimte: false,
-    emoji: {
-      id: '1009557011526074438',
-      name: 'pudele',
-    },
+    emoji: () => emoji('pudele'),
     imgLink: 'https://www.ulmanbots.lv/images/items/pudele.png',
     categories: [ItemCategory.ATKRITUMI],
     value: 10,
@@ -688,10 +612,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'metāllūzni',
     nameAkuDsk: 'metāllūžņus',
     isVirsiesuDzimte: true,
-    emoji: {
-      id: '1030251422614306946',
-      name: 'metalluznis',
-    },
+    emoji: () => emoji('metalluznis'),
     imgLink: 'https://www.ulmanbots.lv/images/items/metalluznis.png',
     categories: [ItemCategory.ATKRITUMI],
     value: 10,
@@ -708,10 +629,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'līdaku',
     nameAkuDsk: 'līdakas',
     isVirsiesuDzimte: false,
-    emoji: {
-      id: '1028069743988588586',
-      name: 'lidaka',
-    },
+    emoji: () => emoji('lidaka'),
     imgLink: 'https://www.ulmanbots.lv/images/items/lidaka.png',
     categories: [ItemCategory.ZIVIS],
     value: 10,
@@ -727,10 +645,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'ceptu līdaku',
     nameAkuDsk: 'ceptas līdakas',
     isVirsiesuDzimte: false,
-    emoji: {
-      id: '1111389909383655595',
-      name: 'cepta_lidaka',
-    },
+    emoji: () => emoji('cepta_lidaka'),
     imgLink: null,
     categories: [ItemCategory.ZIVIS],
     value: 50,
@@ -743,10 +658,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'asari',
     nameAkuDsk: 'asarus',
     isVirsiesuDzimte: true,
-    emoji: {
-      id: '1028069739890757753',
-      name: 'asaris',
-    },
+    emoji: () => emoji('asaris'),
     imgLink: 'https://www.ulmanbots.lv/images/items/asaris.png',
     categories: [ItemCategory.ZIVIS],
     value: 15,
@@ -762,10 +674,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'ceptu asari',
     nameAkuDsk: 'ceptus asarus',
     isVirsiesuDzimte: true,
-    emoji: {
-      id: '1111389912227401738',
-      name: 'cepts_asaris',
-    },
+    emoji: () => emoji('cepts_asaris'),
     imgLink: null,
     categories: [ItemCategory.ZIVIS],
     value: 75,
@@ -778,10 +687,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'lasi',
     nameAkuDsk: 'lašus',
     isVirsiesuDzimte: true,
-    emoji: {
-      id: '1028069742558314526',
-      name: 'lasis',
-    },
+    emoji: () => emoji('lasis'),
     imgLink: 'https://www.ulmanbots.lv/images/items/lasis.png',
     categories: [ItemCategory.ZIVIS],
     value: 20,
@@ -797,10 +703,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'ceptu lasi',
     nameAkuDsk: 'ceptus lašus',
     isVirsiesuDzimte: true,
-    emoji: {
-      id: '1111389913720561785',
-      name: 'cepts_lasis',
-    },
+    emoji: () => emoji('cepts_lasis'),
     imgLink: null,
     categories: [ItemCategory.ZIVIS],
     value: 100,
@@ -820,11 +723,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'loto zivi',
     nameAkuDsk: 'loto zivis',
     isVirsiesuDzimte: false,
-    emoji: {
-      id: '1032050670225866762',
-      name: 'loto_zivs',
-      animated: true,
-    },
+    emoji: () => emoji('loto_zivs'),
     imgLink: 'https://www.ulmanbots.lv/images/items/loto_zivs.gif',
     categories: [ItemCategory.ZIVIS],
     value: 0,
@@ -848,10 +747,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'juridisko zivi',
     nameAkuDsk: 'juridiskās zivis',
     isVirsiesuDzimte: false,
-    emoji: {
-      id: '1028069741287440486',
-      name: 'juridiska_zivs',
-    },
+    emoji: () => emoji('juridiska_zivs'),
     imgLink: 'https://www.ulmanbots.lv/images/items/juridiska_zivs.png',
     categories: [ItemCategory.ZIVIS],
     value: 50,
@@ -866,11 +762,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'dīvaino zivi',
     nameAkuDsk: 'dīvainās zivis',
     isVirsiesuDzimte: false,
-    emoji: {
-      id: '1029789643073388585',
-      name: 'divaina_zivs',
-      animated: true,
-    },
+    emoji: () => emoji('divaina_zivs'),
     imgLink: 'https://www.ulmanbots.lv/images/items/divaina_zivs.gif',
     categories: [ItemCategory.ZIVIS],
     value: 60,
@@ -889,10 +781,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'pētniekzivi',
     nameAkuDsk: 'pētniekzivis',
     isVirsiesuDzimte: false,
-    emoji: {
-      id: '1032281289245601822',
-      name: 'petniekzivs',
-    },
+    emoji: () => emoji('petniekzivs'),
     imgLink: 'https://www.ulmanbots.lv/images/items/petniekzivs.png',
     categories: [ItemCategory.ZIVIS],
     value: 40,
@@ -911,10 +800,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'velosipēdu',
     nameAkuDsk: 'velosipēdus',
     isVirsiesuDzimte: true,
-    emoji: {
-      id: '1028069751563489320',
-      name: 'velosipeds',
-    },
+    emoji: () => emoji('velosipeds'),
     imgLink: 'https://www.ulmanbots.lv/images/items/velosipeds.png',
     categories: [ItemCategory.OTHER],
     value: 250,
@@ -927,10 +813,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'velosipēda rāmi',
     nameAkuDsk: 'velosipēda rāmjus',
     isVirsiesuDzimte: true,
-    emoji: {
-      id: '1028069747297894512',
-      name: 'velo_ramis',
-    },
+    emoji: () => emoji('velo_ramis'),
     imgLink: 'https://www.ulmanbots.lv/images/items/velo_ramis.png',
     categories: [ItemCategory.OTHER],
     value: 10,
@@ -945,10 +828,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'velosipēda riteni',
     nameAkuDsk: 'velosipēda riteņus',
     isVirsiesuDzimte: true,
-    emoji: {
-      id: '1028069749038534766',
-      name: 'velo_ritenis',
-    },
+    emoji: () => emoji('velo_ritenis'),
     imgLink: 'https://www.ulmanbots.lv/images/items/velo_ritenis.png',
     categories: [ItemCategory.OTHER],
     value: 10,
@@ -963,10 +843,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'velosipēda ķēdi',
     nameAkuDsk: 'velosipēda ķēdes',
     isVirsiesuDzimte: false,
-    emoji: {
-      id: '1028069746509348904',
-      name: 'velo_kede',
-    },
+    emoji: () => emoji('velo_kede'),
     imgLink: 'https://www.ulmanbots.lv/images/items/velo_kede.png',
     categories: [ItemCategory.OTHER],
     value: 10,
@@ -981,10 +858,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'velosipēda stūri',
     nameAkuDsk: 'velosipēda stūres',
     isVirsiesuDzimte: false,
-    emoji: {
-      id: '1028069750317789224',
-      name: 'velo_sture',
-    },
+    emoji: () => emoji('velo_sture'),
     imgLink: 'https://www.ulmanbots.lv/images/items/velo_sture.png',
     categories: [ItemCategory.OTHER],
     value: 10,
@@ -1004,10 +878,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'kafiju',
     nameAkuDsk: 'kafijas',
     isVirsiesuDzimte: false,
-    emoji: {
-      id: '1009557001451356161',
-      name: 'kafija',
-    },
+    emoji: () => emoji('kafija'),
     imgLink: 'https://www.ulmanbots.lv/images/items/kafija.png',
     categories: [ItemCategory.OTHER],
     value: 30,
@@ -1029,11 +900,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'dižmakšķeri',
     nameAkuDsk: 'dižmakšķeres',
     isVirsiesuDzimte: false,
-    emoji: {
-      id: '1029758877752897569',
-      name: 'dizmakskere',
-      animated: true,
-    },
+    emoji: () => emoji('dizmakskere'),
     imgLink: 'https://www.ulmanbots.lv/images/items/dizmakskere.gif',
     categories: [ItemCategory.MAKSKERE],
     value: 500,
@@ -1054,11 +921,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'smilšu pulksteni',
     nameAkuDsk: 'smilšu pulksteņus',
     isVirsiesuDzimte: true,
-    emoji: {
-      id: '1029770674056745062',
-      name: 'smilsu_pulkstenis',
-      animated: true,
-    },
+    emoji: () => emoji('smilsu_pulkstenis'),
     imgLink: 'https://www.ulmanbots.lv/images/items/smilsu_pulkstenis.gif',
     categories: [ItemCategory.OTHER],
     value: 75,
@@ -1067,7 +930,7 @@ const itemList: { [key: ItemKey]: Item } = {
   }),
   kaka_parsaucejs: item<UsableItem>({
     info: () =>
-      `Ar šo mantu var nomainīt **${makeEmojiString(itemList.kakis.emoji!)} Kaķa** vārdu\n` +
+      `Ar šo mantu var nomainīt **${itemList.kakis.emoji()} Kaķa** vārdu\n` +
       `Ja tev inventārā ir ${itemString('kaka_parsaucejs', null)}, izmantojot kaķi tev piedāvās nomainīt tā vārdu`,
     addedInVersion: '4.2',
     nameNomVsk: 'kaķa pārsaucējs', // TODO: labāks nosaukums
@@ -1075,10 +938,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'kaķa pārsaucēju',
     nameAkuDsk: 'kaķa pārsaucējus',
     isVirsiesuDzimte: true,
-    emoji: {
-      id: '1047887779897544835',
-      name: 'kaka_parsaucejs',
-    },
+    emoji: () => emoji('kaka_parsaucejs'),
     imgLink: 'https://www.ulmanbots.lv/images/items/kaka_parsaucejs.png',
     categories: [ItemCategory.OTHER],
     value: 90,
@@ -1098,10 +958,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'piparkūku',
     nameAkuDsk: 'piparkūkas',
     isVirsiesuDzimte: false,
-    emoji: {
-      id: '1047888133871653045',
-      name: 'piparkuka',
-    },
+    emoji: () => emoji('piparkuka'),
     imgLink: 'https://www.ulmanbots.lv/images/items/piparkuka.png',
     categories: [ItemCategory.OTHER],
     value: 25,
@@ -1116,7 +973,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'zivju kasti',
     nameAkuDsk: 'zivju kastes',
     isVirsiesuDzimte: false,
-    emoji: null,
+    emoji: () => emoji('zivju_kaste'), // TODO:
     imgLink: null,
     categories: [ItemCategory.OTHER],
     value: 10,
@@ -1133,10 +990,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'nabagLoto biļeti',
     nameAkuDsk: 'nabagLoto biļetes',
     isVirsiesuDzimte: false,
-    emoji: {
-      id: '1107670976428265514',
-      name: 'nabagloto',
-    },
+    emoji: () => emoji('nabagloto'),
     imgLink: null, // TODO
     categories: [ItemCategory.LOTO],
     value: 10,
@@ -1152,11 +1006,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'ulmaņLoto biļeti',
     nameAkuDsk: 'ulmaņLoto biļetes',
     isVirsiesuDzimte: false,
-    emoji: {
-      id: '1107670979943075891',
-      name: 'ulmanloto',
-      animated: true,
-    },
+    emoji: () => emoji('ulmanloto'),
     imgLink: null, // TODO
     categories: [ItemCategory.LOTO],
     value: 500,
@@ -1173,10 +1023,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'aveni',
     nameAkuDsk: 'avenes',
     isVirsiesuDzimte: false,
-    emoji: {
-      name: 'avene',
-      id: '1213615541584011315',
-    },
+    emoji: () => emoji('avene'),
     imgLink: null,
     categories: [ItemCategory.OTHER],
     value: 15,
@@ -1191,10 +1038,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'melleni',
     nameAkuDsk: 'mellenes',
     isVirsiesuDzimte: false,
-    emoji: {
-      id: '1213615545551691826',
-      name: 'mellene',
-    },
+    emoji: () => emoji('mellene'),
     imgLink: null,
     categories: [ItemCategory.OTHER],
     value: 15,
@@ -1210,10 +1054,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'vīnogu',
     nameAkuDsk: 'vīnogas',
     isVirsiesuDzimte: false,
-    emoji: {
-      id: '1213615546978013254',
-      name: 'vinoga',
-    },
+    emoji: () => emoji('vinoga'),
     imgLink: null,
     categories: [ItemCategory.OTHER],
     value: 15,
@@ -1229,10 +1070,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'zemeni',
     nameAkuDsk: 'zemenes',
     isVirsiesuDzimte: false,
-    emoji: {
-      id: '1213615548349288458',
-      name: 'zemene',
-    },
+    emoji: () => emoji('zemene'),
     imgLink: null,
     categories: [ItemCategory.OTHER],
     value: 15,
@@ -1248,10 +1086,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'jāņogu',
     nameAkuDsk: 'jāņogas',
     isVirsiesuDzimte: false,
-    emoji: {
-      id: '1213615542989226045',
-      name: 'janoga',
-    },
+    emoji: () => emoji('janoga'),
     imgLink: null,
     categories: [ItemCategory.OTHER],
     value: 15,
@@ -1269,7 +1104,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'ogu krūma sēklu',
     nameAkuDsk: 'ogu krūma sēklas',
     isVirsiesuDzimte: false,
-    emoji: null,
+    emoji: () => emoji('kruma_sekla'), // TODO:
     imgLink: null,
     categories: [ItemCategory.OTHER],
     value: 10,
@@ -1299,10 +1134,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'ogu krūmu',
     nameAkuDsk: 'ogu krūmus',
     isVirsiesuDzimte: true,
-    emoji: {
-      name: 'ogu_krums',
-      id: '1213842076458819614',
-    },
+    emoji: () => emoji('ogu_krums'),
     imgLink: 'https://beanson.lv/images/krums.png',
     categories: [ItemCategory.OTHER],
     value: 400,
@@ -1333,7 +1165,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'ievārījumu',
     nameAkuDsk: 'ievārījumus',
     isVirsiesuDzimte: true,
-    emoji: null,
+    emoji: () => emoji('ievarijums'), // TODO: 
     imgLink: null,
     categories: [ItemCategory.OTHER],
     value: 15,
@@ -1359,10 +1191,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'roltonu',
     nameAkuDsk: 'roltonus',
     isVirsiesuDzimte: true,
-    emoji: {
-      id: '1199634609114202162',
-      name: 'roltons',
-    },
+    emoji: () => emoji('roltons'),
     imgLink: 'https://beanson.lv/images/roltons.png',
     categories: [ItemCategory.ATKRITUMI],
     value: 15,
@@ -1402,10 +1231,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: '10 latu brīvgriezienu',
     nameAkuDsk: '10 latu brīvgriezienus',
     isVirsiesuDzimte: true,
-    emoji: {
-      id: '1029728226571993088',
-      name: 'brivgriez10',
-    },
+    emoji: () => emoji('brivgriez10'),
     imgLink: 'https://www.ulmanbots.lv/images/items/brivgriez10.png',
     categories: [ItemCategory.BRIVGRIEZIENS],
     value: 2,
@@ -1420,10 +1246,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: '25 latu brīvgriezienu',
     nameAkuDsk: '25 latu brīvgriezienus',
     isVirsiesuDzimte: true,
-    emoji: {
-      id: '1029729516584701982',
-      name: 'brivgriez25',
-    },
+    emoji: () => emoji('brivgriez25'),
     imgLink: 'https://www.ulmanbots.lv/images/items/brivgriez25.png',
     categories: [ItemCategory.BRIVGRIEZIENS],
     value: 5,
@@ -1438,10 +1261,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: '50 latu brīvgriezienu',
     nameAkuDsk: '50 latu brīvgriezienus',
     isVirsiesuDzimte: true,
-    emoji: {
-      id: '1029730465189482577',
-      name: 'brivgriez50',
-    },
+    emoji: () => emoji('brivgriez50'),
     imgLink: 'https://www.ulmanbots.lv/images/items/brivgriez50.png',
     categories: [ItemCategory.BRIVGRIEZIENS],
     value: 10,
@@ -1456,10 +1276,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: '100 latu brīvgriezienu',
     nameAkuDsk: '100 latu brīvgriezienus',
     isVirsiesuDzimte: true,
-    emoji: {
-      id: '1029731216968122378',
-      name: 'brivgriez100',
-    },
+    emoji: () => emoji('brivgriez100'),
     imgLink: 'https://www.ulmanbots.lv/images/items/brivgriez100.png',
     categories: [ItemCategory.BRIVGRIEZIENS],
     value: 20,
@@ -1479,10 +1296,7 @@ const itemList: { [key: ItemKey]: Item } = {
     nameAkuVsk: 'salaveča cepuri',
     nameAkuDsk: 'salaveča cepures',
     isVirsiesuDzimte: false,
-    emoji: {
-      id: '1043304199309496330',
-      name: 'salaveca_cepure',
-    },
+    emoji: () => emoji('salaveca_cepure'),
     imgLink: 'https://www.ulmanbots.lv/images/items/salaveca_cepure.png',
     categories: [ItemCategory.ADVENTE_2022],
     value: 75,

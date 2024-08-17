@@ -3,11 +3,11 @@ import commandColors from '../../../embeds/commandColors';
 import embedTemplate from '../../../embeds/embedTemplate';
 import itemString from '../../../embeds/helpers/itemString';
 import millisToReadableTime from '../../../embeds/helpers/millisToReadableTime';
-import iconEmojis from '../../../embeds/iconEmojis';
 import Item, { TirgusItem } from '../../../interfaces/Item';
 import UserProfile from '../../../interfaces/UserProfile';
 import itemList, { ItemKey } from '../../../items/itemList';
 import { calcReqItems } from './tirgus';
+import emoji from '../../../utils/emoji';
 
 function mapPrice(itemObj: Item, user: UserProfile): string {
   const tirgusPrice = (itemObj as Item & TirgusItem).tirgusPrice;
@@ -20,14 +20,14 @@ function mapPrice(itemObj: Item, user: UserProfile): string {
 
   return (
     (reqLati
-      ? `${user.lati >= reqLati ? iconEmojis.checkmark : iconEmojis.cross} \` ${user.lati}/${reqLati} \` lati\n`
+      ? `${user.lati >= reqLati ? emoji('icon_check1') : emoji('icon_cross')} \` ${user.lati}/${reqLati} \` lati\n`
       : '') +
     Object.entries(reqItemsInv)
       .map(([key, amount]) => {
         const reqAmount = tirgusPrice.items[key];
 
         return (
-          `${amount >= reqAmount ? iconEmojis.checkmark : iconEmojis.cross} ` +
+          `${amount >= reqAmount ? emoji('icon_check1') : emoji('icon_cross')} ` +
           `\` ${' '.repeat(maxHasLen - `${amount}`.length)}${amount}/` +
           `${reqAmount}${' '.repeat(maxReqLen - `${reqAmount}`.length)} \` ${itemString(itemList[key])}`
         );
@@ -40,7 +40,7 @@ export default function tirgusEmbed(
   i: ChatInputCommandInteraction,
   listings: ItemKey[],
   user: UserProfile,
-  itemsBought: ItemKey[]
+  itemsBought: ItemKey[],
 ) {
   const resetTime = new Date().setHours(24, 0, 0, 0);
   const timeUntilReset = resetTime - Date.now();
@@ -58,7 +58,7 @@ export default function tirgusEmbed(
       return {
         name: itemString(itemObj),
         value:
-          `Pieejams: ${itemsBought.includes(key) ? iconEmojis.cross : iconEmojis.checkmark}\n` +
+          `Pieejams: ${itemsBought.includes(key) ? emoji('icon_cross') : emoji('icon_check1')}\n` +
           '**Cena:**\n' +
           mapPrice(itemObj, user) +
           (index !== listings.length - 1 ? `\n__${'\u2800'.repeat(20)}__` : ''),

@@ -7,7 +7,7 @@ import chalk from 'chalk';
 import setBotPresence from './utils/setBotPresence';
 import buttonInteractionHandler from './utils/buttonInteractionHandler';
 import messageHandler from './utils/messageHandler';
-import User from './schemas/User';
+import { loadEmojis } from './utils/emoji';
 
 process.env.TZ = 'Europe/Riga';
 
@@ -18,14 +18,12 @@ const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages],
 });
 
+await loadEmojis().then(() => console.log(chalk.green('Emojis loaded')));
+
 const mongoPromise = mongo();
 
 client.once('ready', async bot => {
   await mongoPromise.then(() => console.log('Connected to MongoDB'));
-
-  // User.watch().on('change', data => {
-  //   console.log(data);
-  // });
 
   setBotPresence(bot);
   setInterval(() => setBotPresence(bot), 3_600_000);

@@ -57,7 +57,7 @@ function makeComponents(
                     : itemObj.value,
                 )} | ` + displayAttributes(item, true),
               value: item._id!,
-              emoji: (itemObj.customEmoji ? itemObj.customEmoji(item.attributes) : itemObj.emoji) || '❓',
+              emoji: (itemObj.customEmoji ? itemObj.customEmoji(item.attributes) : itemObj.emoji()) || '❓',
               default: !!selectedIds.length && selectedIds!.includes(item._id!),
             })),
         ),

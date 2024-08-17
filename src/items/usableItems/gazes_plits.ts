@@ -145,7 +145,7 @@ function view(state: State, i: BaseInteraction) {
                   `Rūgt. ${berryProperties[name].rugtums} | ` +
                   `Slapj. ${berryProperties[name].slapjums}`,
                 value: name,
-                emoji: itemObj.emoji || '❓',
+                emoji: itemObj.emoji() || '❓',
                 default: name === state.boil.selectedBerry,
               })),
           ),

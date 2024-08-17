@@ -13,7 +13,6 @@ import embedTemplate from '../../embeds/embedTemplate';
 import ephemeralReply from '../../embeds/ephemeralReply';
 import errorEmbed from '../../embeds/errorEmbed';
 import itemString from '../../embeds/helpers/itemString';
-import iconEmojis from '../../embeds/iconEmojis';
 import { UsableItemFunc } from '../../interfaces/Item';
 import intReply from '../../utils/intReply';
 import chance, { ChanceObj, ChanceRecord } from '../helpers/chance';
@@ -23,6 +22,7 @@ import { SpecialItemInProfile } from '../../interfaces/UserProfile';
 import { displayAttributes } from '../../embeds/helpers/displayAttributes';
 import buttonHandler from '../../embeds/buttonHandler';
 import capitalizeFirst from '../../embeds/helpers/capitalizeFirst';
+import emoji from '../../utils/emoji';
 
 const fishCountChance: ChanceRecord = {
   3: { chance: '*' }, // 0.25
@@ -46,15 +46,17 @@ const lotoFishChanceObj: Record<ItemKey, ChanceObj> = {
   divaina_zivs: { chance: 0.1 },
 };
 
-const lotoZivsSpinEmoji = '<a:loto_zivs_spin:1032080231097450567>';
-
 function lotoZivsEmbed(
   i: ChatInputCommandInteraction | ButtonInteraction,
   wonFishArr: ItemKey[],
   wonFishObj: Record<ItemKey, number>,
   spinning = false,
 ) {
-  const { emptyEmoji, arrow_1_left, arrow_1_right, arrow_2_left, arrow_2_right } = iconEmojis;
+  const emptyEmoji = emoji('blank');
+  const arrow_1_left = emoji('icon_arrow_1_left');
+  const arrow_1_right = emoji('icon_arrow_1_right');
+  const arrow_2_left = emoji('icon_arrow_2_left');
+  const arrow_2_right = emoji('icon_arrow_2_right');
 
   return embedTemplate({
     i,
@@ -64,10 +66,9 @@ function lotoZivsEmbed(
       (spinning ? arrow_1_right : arrow_2_right) +
       emptyEmoji +
       (spinning
-        ? Array(wonFishArr.length).fill(lotoZivsSpinEmoji)
+        ? Array(wonFishArr.length).fill(emoji('icon_loto_zivs_spin'))
         : wonFishArr.map(key => {
-            const { emoji } = itemList[key];
-            return `<${emoji?.animated ? 'a' : ''}:${emoji?.name}:${emoji?.id}>`;
+            return itemList[key].emoji();
           })
       ).join(' ') +
       emptyEmoji +
@@ -103,7 +104,7 @@ function lotoZivsComponents(lotoZivis: SpecialItemInProfile[], disabled = false,
           .map(item => ({
             label: capitalizeFirst(itemObj.nameNomVsk),
             description: displayAttributes(item, true),
-            emoji: itemObj.emoji || '❓',
+            emoji: itemObj.emoji() || '❓',
             value: item._id!,
             default: selectedId === item._id,
           })),

@@ -4,7 +4,6 @@ import embedTemplate from '../../../embeds/embedTemplate';
 import errorEmbed from '../../../embeds/errorEmbed';
 import itemString from '../../../embeds/helpers/itemString';
 import latiString from '../../../embeds/helpers/latiString';
-import iconEmojis from '../../../embeds/iconEmojis';
 import wrongKeyEmbed from '../../../embeds/wrongKeyEmbed';
 import Command from '../../../interfaces/Command';
 import Item, { TirgusItem } from '../../../interfaces/Item';
@@ -17,6 +16,7 @@ import maksekeresData from '../zvejot/makskeresData';
 import allItemAutocomplete from './allItemAutocomplete';
 import { LotoOptions } from '../../../items/usableItems/loto';
 import updatesList from '../palidziba/jaunumi/updatesList';
+import emoji from '../../../utils/emoji';
 
 const info: Command = {
   description: 'Iegūt detalizētu informāciju par kādu mantu - vērtība, cena, tirgus cena, makšķeres informācija, utt.',
@@ -58,7 +58,7 @@ const info: Command = {
         value:
           ('customValue' in itemObj ? '⚠️ šīs mantas vērtība var \nmainīties atkarībā no atribūtiem\n' : '') +
           '\u200B\n' +
-          `**Mantas tips:**\n${itemTypes[itemType].emoji} - ${itemTypes[itemType].text}`,
+          `**Mantas tips:**\n${itemTypes[itemType].emoji()} - ${itemTypes[itemType].text}`,
         inline: true,
       },
     ];
@@ -94,7 +94,7 @@ const info: Command = {
         `\n\n**Makšķeres informācija:**\n` +
         `Maksimālā izturība: ${maxDurability}\n` +
         `Zvejas laiks: ${timeStr}\n` +
-        `Salabojama: ${repairable ? iconEmojis.checkmark : iconEmojis.cross}`;
+        `Salabojama: ${repairable ? emoji('icon_check1') : emoji('icon_cross')}`;
 
       fields.push({
         name: 'Nocopējamās mantas:',
@@ -137,12 +137,12 @@ const info: Command = {
         },
         {
           name: 'Iesp. laimesti:',
-          value: latiRewards.map(({ emoji, lati }) => `${emoji} - ${latiString(lati!, false, true)}`).join('\n'),
+          value: latiRewards.map(({ emoji, lati }) => `${emoji()} - ${latiString(lati!, false, true)}`).join('\n'),
           inline: true,
         },
         {
           name: 'Iesp. reizinātāji:',
-          value: multiplierRewards.map(({ emoji, multiplier }) => `${emoji} - **${multiplier!}x** reiz.`).join('\n'),
+          value: multiplierRewards.map(({ emoji, multiplier }) => `${emoji()} - **${multiplier!}x** reiz.`).join('\n'),
           inline: true,
         },
       );

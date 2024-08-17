@@ -128,7 +128,7 @@ function view({ user, shopItems, chosenItem, chosenAmount, resetTime, timeUntilR
               label: capitalizeFirst(itemObj.nameNomVsk),
               description: latiString(price),
               value: key,
-              emoji: itemObj.emoji || '❓',
+              emoji: itemObj.emoji() || '❓',
               default: key === chosenItem,
             })),
           ),

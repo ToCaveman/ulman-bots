@@ -67,7 +67,7 @@ const makskere: UsableItemFunc = async (userId, guildId, itemKey, specialItem) =
           )
           .setStyle(repairable ? ButtonStyle.Primary : ButtonStyle.Danger)
           .setDisabled(!repairable)
-          .setEmoji(itemObj.emoji || '❓'),
+          .setEmoji(itemObj.emoji() || '❓'),
       );
 
       const msg = await intReply(i, { embeds: [embed], components: [row], fetchReply: true });

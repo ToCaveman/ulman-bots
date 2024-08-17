@@ -68,7 +68,7 @@ function makeComponents(
               label: itemStringCustom(itemObj, item.attributes?.customName),
               description: displayAttributes(item, true),
               value: item._id!,
-              emoji: (itemObj.customEmoji ? itemObj.customEmoji(item.attributes) : itemObj.emoji) || '❓',
+              emoji: (itemObj.customEmoji ? itemObj.customEmoji(item.attributes) : itemObj.emoji()) || '❓',
               default: selectedId === item._id,
             })),
         ),

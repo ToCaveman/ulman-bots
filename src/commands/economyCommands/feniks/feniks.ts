@@ -13,7 +13,8 @@ export const FENIKS_MIN_LIKME = 20;
 function infoEmbed(i: ChatInputCommandInteraction) {
   const fields: EmbedField[] = [];
 
-  for (const { multipliers, emoji } of Object.values(feniksLaimesti)) {
+  for (const laim of Object.values(feniksLaimesti)) {
+    const { multipliers } = laim;
     const longestNum = Object.values(multipliers).reduce((c, p) => (`${p}`.length > c ? `${p}`.length : c), 0);
 
     fields.push({
@@ -21,7 +22,7 @@ function infoEmbed(i: ChatInputCommandInteraction) {
       value: Object.entries(multipliers)
         .map(
           ([n, mult]) =>
-            `**\` ` + ' '.repeat(longestNum - `${mult}`.length) + `${mult}x \`** ${emoji.repeat(Number(n))}`,
+            `**\` ` + ' '.repeat(longestNum - `${mult}`.length) + `${mult}x \`** ${laim.emoji().repeat(Number(n))}`,
         )
         .join('\n'),
       inline: true,

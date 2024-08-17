@@ -69,7 +69,7 @@ export default function zvejotComponents(
               .map(item => ({
                 label: capitalizeFirst(itemList[item.name].nameNomVsk),
                 value: `${item.name} ${item._id}`,
-                emoji: itemList[item.name].emoji ?? '❓',
+                emoji: itemList[item.name].emoji() ?? '❓',
                 description: displayAttributes(item, true),
                 default: selectedFishingRodId === item._id,
               })),
@@ -84,7 +84,7 @@ export default function zvejotComponents(
       .setCustomId('remove_fishing_rod')
       .setLabel('Noņemt makšķeri')
       .setStyle(ButtonStyle.Secondary)
-      .setEmoji(itemList[selectedRod].emoji || '❓'),
+      .setEmoji(itemList[selectedRod].emoji() || '❓'),
   ];
   if (user.guildId === process.env.DEV_SERVER_ID) {
     buttons.push(

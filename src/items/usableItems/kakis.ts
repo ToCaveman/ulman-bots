@@ -115,7 +115,7 @@ const changeNameBtn = () =>
     .setLabel('Mainīt kaķa vārdu')
     .setCustomId(`cat_change_name`)
     .setStyle(ButtonStyle.Primary)
-    .setEmoji(itemList.kaka_parsaucejs.emoji ?? '❓');
+    .setEmoji(itemList.kaka_parsaucejs.emoji() || '❓');
 
 function hatButton(items: ItemInProfile[], hat: string, hatModified: boolean) {
   const hatInInv = items.find(({ name }) => name === 'salaveca_cepure');
@@ -124,7 +124,7 @@ function hatButton(items: ItemInProfile[], hat: string, hatModified: boolean) {
   return new ButtonBuilder()
     .setCustomId(hat ? 'cat_remove_hat' : 'cat_add_hat')
     .setLabel(`${hat ? 'Novilkt cepuri' : 'Uzvilkt cepuri'}${hatModified ? ' (izmanto vēlreiz)' : ''}`)
-    .setEmoji(itemList.salaveca_cepure.emoji || '❓')
+    .setEmoji(itemList.salaveca_cepure.emoji() || '❓')
     .setStyle(ButtonStyle.Primary)
     .setDisabled(hatModified);
 }
@@ -175,12 +175,12 @@ function components(
           .setPlaceholder('Izvēlies ēdienu')
           .addOptions(
             foodInInv.map(({ name, amount }) => {
-              const { nameNomVsk, emoji } = itemList[name];
+              // const { nameNomVsk, emoji } = itemList[name];
               return {
-                label: `${capitalizeFirst(nameNomVsk)} ${foodDataPercentage(name)}`,
+                label: `${capitalizeFirst(itemList[name].nameNomVsk)} ${foodDataPercentage(name)}`,
                 description: `Tev ir ${amount}`,
                 value: name,
-                emoji: emoji || '❓',
+                emoji: itemList[name].emoji() || '❓',
                 default: name === selectedFood,
               };
             })

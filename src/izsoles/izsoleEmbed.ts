@@ -1,9 +1,9 @@
 import { ActionRowBuilder, APIEmbed, ButtonBuilder, ButtonStyle, time } from 'discord.js';
 import itemString from '../embeds/helpers/itemString';
 import latiString from '../embeds/helpers/latiString';
-import iconEmojis from '../embeds/iconEmojis';
 import AuctionType from '../interfaces/AuctionType';
 import itemList from '../items/itemList';
+import emoji from '../utils/emoji';
 
 export const ULMANBOTA_ROLE_ID = '905377993633955930';
 
@@ -22,7 +22,7 @@ export default function izsoleEmbed({
 
   const embeds: APIEmbed[] = [
     {
-      title: `${isActive ? `${iconEmojis.checkmark} Aktīva` : `${iconEmojis.cross} Beigusies`} Izsole`,
+      title: `${isActive ? `${emoji('icon_check1')} Aktīva` : `${emoji('icon_cross')} Beigusies`} Izsole`,
       description:
         `Sākums: **${time(new Date(startDate), 't')}** ${time(new Date(startDate), 'd')}\n` +
         `Beigas: **${time(new Date(endDate), 't')}** ${time(new Date(endDate), 'd')}`,

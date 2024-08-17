@@ -23,7 +23,7 @@ export default function feniksComponents(
       .setCustomId(`freespin_${name}`)
       .setStyle(spinning ? ButtonStyle.Secondary : ButtonStyle.Primary)
       .setLabel(`${itemList[name].nameNomVsk} (${amount})`)
-      .setEmoji(itemList[name].emoji || '❓')
+      .setEmoji(itemList[name].emoji() || '❓')
       .setDisabled(spinning)
   );
 

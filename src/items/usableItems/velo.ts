@@ -16,11 +16,11 @@ import ephemeralReply from '../../embeds/ephemeralReply';
 import errorEmbed from '../../embeds/errorEmbed';
 import itemString from '../../embeds/helpers/itemString';
 import xpAddedEmbed from '../../embeds/helpers/xpAddedEmbed';
-import iconEmojis from '../../embeds/iconEmojis';
 import { UsableItemFunc } from '../../interfaces/Item';
 import { ItemInProfile } from '../../interfaces/UserProfile';
 import intReply from '../../utils/intReply';
 import itemList, { ItemKey } from '../itemList';
+import emoji from '../../utils/emoji';
 
 const VELO_XP = 10;
 
@@ -51,7 +51,7 @@ function makeEmbed(
         value: Object.entries(reqItemsInv)
           .map(([key, amount]) => {
             return (
-              `${amount >= requiredItems[key] ? iconEmojis.checkmark : iconEmojis.cross} ` +
+              `${amount >= requiredItems[key] ? emoji('icon_check1') : emoji('icon_cross')} ` +
               `\` ${' '.repeat(maxLength - `${amount}`.length)}${amount}/${requiredItems[key]} \` ` +
               itemString(itemList[key])
             );

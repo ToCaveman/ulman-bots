@@ -24,30 +24,30 @@ import Item, { AttributeItem, NotSellableItem } from '../../interfaces/Item';
 import { displayAttributes } from '../../embeds/helpers/displayAttributes';
 import buttonHandler from '../../embeds/buttonHandler';
 import pardotRun from './pardot/pardotRun';
-import iconEmojis from '../../embeds/iconEmojis';
 import { INCREASE_CAP_1 } from '../../items/usableItems/mugursoma';
 import { INCREASE_CAP_2 } from '../../items/usableItems/divaina_mugursoma';
 import intReply from '../../utils/intReply';
 import btnPaginationRow from '../../items/helpers/btnPaginationRow';
+import emoji from '../../utils/emoji';
 
 export type ItemType = 'not_usable' | 'usable' | 'special' | 'not_sellable';
 
-export const itemTypes: Record<ItemType, { text: string; emoji: string }> = {
+export const itemTypes: Record<ItemType, { text: string; emoji: () => string }> = {
   not_sellable: {
     text: 'īpaša izmantojama un **nepārdodama** un manta',
-    emoji: '<:check3:1017598453032943636>',
+    emoji: () => emoji('icon_check3'),
   },
   special: {
     text: 'izmantojama manta ar atribūtiem',
-    emoji: '<:check2:1017601966555267132>',
+    emoji: () => emoji('icon_check2'),
   },
   usable: {
     text: 'izmantojama manta',
-    emoji: iconEmojis.checkmark,
+    emoji: () => emoji('icon_check1'),
   },
   not_usable: {
     text: 'neizmantojama manta',
-    emoji: iconEmojis.cross,
+    emoji: () => emoji('icon_cross'),
   },
 };
 
@@ -116,7 +116,7 @@ function mapItems({ items, specialItems }: UserProfile) {
       return {
         name: itemString(item, null, false, attributes),
         value:
-          `${itemTypes[currentItemType].emoji} ` +
+          `${itemTypes[currentItemType].emoji()} ` +
           `${currentItemType === 'not_sellable' ? '??? lati' : latiString(value)}\n` +
           displayAttributes(specialItem),
         inline: true,
@@ -137,7 +137,7 @@ function mapItems({ items, specialItems }: UserProfile) {
 
     return {
       name: `${itemString(item)} x${amount}`,
-      value: `${itemTypes[currentItemType].emoji} ${latiString(item.value)}`,
+      value: `${itemTypes[currentItemType].emoji()} ${latiString(item.value)}`,
       inline: true,
     };
   });
@@ -190,7 +190,7 @@ function invEmbed(
           `Inventāra vērtība: ${latiString(totalValue, false, true)}\n\n` +
           Object.entries(itemTypes).reduce(
             (prev, [key, { text, emoji }]) =>
-              itemTypesInv.includes(key as ItemType) ? prev + `${emoji} - ${text}\n` : prev,
+              itemTypesInv.includes(key as ItemType) ? prev + `${emoji()} - ${text}\n` : prev,
             '',
           ) +
           '\u2800'
