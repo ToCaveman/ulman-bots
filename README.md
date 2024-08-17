@@ -14,9 +14,9 @@ Pelni naudu, zvejo, apzodz citus un griez aparātus līdz nebēdai!
 
 ## Pirms sāc
 
-1. Ieinstalē [Bun](https://bun.sh/) (Ja vēlies izmantot uz Windows, nāksies ieinstalēt WSL2).
-2. Izveido MongoDB datubāzi.
-3. Izveido Discord botu un pievieno to savam serverim.
+1. Ieinstalē [Bun](https://bun.sh/).
+2. Ieinstalē Docker.
+3. Izveido Discord botu un pievieno to savam serverim (ieteicams izveidot jaunu testa serveri).
 
 ## 1. Noklonē Git repozitoriju
 
@@ -25,20 +25,34 @@ git clone https://github.com/deimoss123/ulman-bots
 cd ulman-bots
 ```
 
-## 2. Ieinstalē paciņas
+## 2. Izveido .env failu
+
+- Projekta saknē izveido `.env` failu, izmantojot `.env.example` kā piemēru.
+- Ievadi nepieciešamās vērtības.
+
+
+## 3. Izveido Mango datubāzi
+Lai palaistu Mongo datubāzi ar Docker:
+
+```sh
+docker compose up -d
+```
+
+Lai izslēgtu:
+
+```sh
+docker compose down
+```
+
+## 4. Ieinstalē paciņas
 
 ```sh
 bun install
 ```
 
-## 3. Izveido .env failu
+## 5. Reģistrē komandas
 
-- Projekta saknē izveido `.env` failu, izmantojot `.env.example` kā piemēru.
-- Ievadi nepieciešamās vērtības.
-
-## 4. Reģistrē komandas
-
-Lokāli, vienam serverim, izstrādei:
+Vienam serverim (DEV_SERVER_ID):
 
 ```sh
 bun register
@@ -50,7 +64,19 @@ Visos serveros:
 bun register:global
 ```
 
-## 5. Palaid botu
+## 6. Augšupielādē botam nepieciešamos emoji
+
+```sh
+bun uploadEmojis
+```
+
+Lai izdzēstu visus emoji:
+
+```sh
+bun deleteEmojis
+```
+
+## 7. Palaid botu
 
 Izstrādes režīms, restartēsies pēc failu izmaiņās:
 
@@ -63,9 +89,3 @@ Parastais režīms, ignorēs izmaiņas:
 ```sh
 bun start
 ```
-
-## 6. Par emocijzīmēm
-
-UlmaņBots izmanto ĻOTI daudz emocijzīmes un tās visas ir ieceptas kodā.
-
-Ja tu nopietni apsver izstrādāt UlmaņBotu, dod ziņu, tad varu pievienot tiem ~15 serveriem, kur atrodas visi emoji.
