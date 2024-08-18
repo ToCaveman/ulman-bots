@@ -189,16 +189,16 @@ export class Dialogs<T extends { [key: string]: any }> {
         this.update(componentInteraction);
       }
 
+      if (res.after) {
+        res.after();
+      }
+
       if (res.edit && !res.update) {
-        this.edit();
+        await this.edit();
       }
 
       if (res.end) {
         collector.stop();
-      }
-
-      if (res.after) {
-        res.after();
       }
     });
 
