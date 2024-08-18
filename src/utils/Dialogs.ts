@@ -59,7 +59,7 @@ export class Dialogs<T extends { [key: string]: any }> {
     // sākotnējais interaction, piemēram, no komandas
     private primaryInteraction: InteractionType,
 
-    // viss dialoga "state", šis ir jāmaina pa tiešo, bet setteriem
+    // viss dialoga "state", šis ir jāmaina pa tiešo, bez setteriem
     public state: T,
 
     // funkcija, kas atgriež embedus/pogas, atkarīga no state
@@ -124,6 +124,7 @@ export class Dialogs<T extends { [key: string]: any }> {
   public onClick(
     callback: (
       componentInteraction: ButtonInteraction | StringSelectMenuInteraction,
+      state: T,
     ) => Promise<OnClickCallbackReturn | void>,
   ) {
     if (!this.primaryMsg) {
@@ -172,7 +173,7 @@ export class Dialogs<T extends { [key: string]: any }> {
 
       collector.resetTimer();
 
-      const res = await callback(componentInteraction);
+      const res = await callback(componentInteraction, this.state);
       if (!res) {
         if (componentInteraction.replied) return;
         await componentInteraction.deferUpdate().catch(_ => _);
