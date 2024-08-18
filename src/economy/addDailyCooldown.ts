@@ -1,3 +1,4 @@
+import { ClientSession } from 'mongoose';
 import UserProfile from '../interfaces/UserProfile';
 import User from '../schemas/User';
 import userCache from '../utils/userCache';
@@ -7,10 +8,11 @@ export default async function addDailyCooldown(
   userId: string,
   guildId: string,
   commandName: 'stradat' | 'ubagot' | 'pabalsts',
-  isExtraUses = false
-): Promise<UserProfile | void> {
+  isExtraUses = false,
+  session: ClientSession | null = null,
+): Promise<UserProfile | undefined> {
   try {
-    const res = await findUser(userId, guildId);
+    const res = await findUser(userId, guildId, session);
     if (!res) return;
 
     const { dailyCooldowns } = res;
@@ -21,9 +23,9 @@ export default async function addDailyCooldown(
       dailyCooldowns[commandName].timesUsed++;
     }
 
-    await User.updateOne({ userId, guildId }, { $set: { dailyCooldowns } });
+    await User.updateOne({ userId, guildId }, { $set: { dailyCooldowns } }).session(session);
 
-    userCache[guildId][userId] = res;
+    // userCache[guildId][userId] = res;
 
     return JSON.parse(JSON.stringify(res));
   } catch (e: any) {

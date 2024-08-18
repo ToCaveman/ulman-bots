@@ -3,14 +3,16 @@ import User from '../schemas/User';
 import UserProfile from '../interfaces/UserProfile';
 import userCache from '../utils/userCache';
 import itemList, { ItemKey } from '../items/itemList';
+import { ClientSession } from 'mongoose';
 
 export default async function addItems(
   userId: string,
   guildId: string,
   itemsToAdd: Record<ItemKey, number>,
+  session: ClientSession | null = null,
 ): Promise<UserProfile | undefined> {
   try {
-    const user = await findUser(userId, guildId);
+    const user = await findUser(userId, guildId, session);
     if (!user) return;
 
     const { items, specialItems } = user;
@@ -58,9 +60,9 @@ export default async function addItems(
       { userId, guildId },
       { $set: { items, specialItems } },
       { new: true },
-    )) as UserProfile;
+    ).session(session)) as UserProfile;
 
-    userCache[guildId][userId] = res;
+    // userCache[guildId][userId] = res;
 
     return JSON.parse(JSON.stringify(res));
   } catch (e: any) {

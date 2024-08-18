@@ -1,3 +1,4 @@
+import { ClientSession } from 'mongoose';
 import UserProfile from '../interfaces/UserProfile';
 import { ItemKey } from '../items/itemList';
 import User from '../schemas/User';
@@ -7,10 +8,11 @@ import findUser from './findUser';
 export default async function setTirgus(
   userId: string,
   guildId: string,
-  itemKey: ItemKey
-): Promise<UserProfile | void> {
+  itemKey: ItemKey,
+  session: ClientSession | null = null,
+): Promise<UserProfile | undefined> {
   try {
-    const user = await findUser(userId, guildId);
+    const user = await findUser(userId, guildId, session);
     if (!user) return;
 
     const today = new Date().toLocaleDateString('en-GB');
@@ -24,10 +26,10 @@ export default async function setTirgus(
     const res = (await User.findOneAndUpdate(
       { userId, guildId },
       { $set: { tirgus: user.tirgus } },
-      { new: true }
-    )) as UserProfile;
+      { new: true },
+    ).session(session)) as UserProfile;
 
-    userCache[guildId][userId] = res;
+    // userCache[guildId][userId] = res;
 
     return JSON.parse(JSON.stringify(res));
   } catch (e: any) {

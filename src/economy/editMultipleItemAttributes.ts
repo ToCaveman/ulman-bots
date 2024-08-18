@@ -1,3 +1,4 @@
+import { ClientSession } from 'mongoose';
 import UserProfile, { ItemAttributes, SpecialItemInProfile } from '../interfaces/UserProfile';
 import User from '../schemas/User';
 import userCache from '../utils/userCache';
@@ -6,10 +7,11 @@ import findUser from './findUser';
 export default async function editMultipleItemAttributes(
   userId: string,
   guildId: string,
-  itemsToChange: { itemId: string; newAttributes: ItemAttributes }[]
-): Promise<{ user: UserProfile; newItems: SpecialItemInProfile[] } | void> {
+  itemsToChange: { itemId: string; newAttributes: ItemAttributes }[],
+  session: ClientSession | null = null,
+): Promise<{ user: UserProfile; newItems: SpecialItemInProfile[] } | undefined> {
   try {
-    const user = await findUser(userId, guildId);
+    const user = await findUser(userId, guildId, session);
     if (!user) return;
 
     const { specialItems } = user;
@@ -23,13 +25,14 @@ export default async function editMultipleItemAttributes(
       newItems.push(specialItems[itemIndex]);
     }
 
+    // prettier-ignore
     const res = (await User.findOneAndUpdate(
       { userId, guildId },
       { $set: { specialItems } },
-      { new: true }
-    )) as UserProfile;
+      { new: true },
+    ).session(session)) as UserProfile;
 
-    userCache[guildId][userId] = res;
+    // userCache[guildId][userId] = res;
 
     return { user: JSON.parse(JSON.stringify(res)), newItems };
   } catch (e: any) {

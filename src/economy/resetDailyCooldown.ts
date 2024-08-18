@@ -1,11 +1,13 @@
+import { ClientSession } from 'mongoose';
 import UserProfile from '../interfaces/UserProfile';
 import User, { dailyCooldownDefault } from '../schemas/User';
 import userCache from '../utils/userCache';
 
 export default async function resetDailyCooldown(
   userId: string,
-  guildId: string
-): Promise<UserProfile | void> {
+  guildId: string,
+  session: ClientSession | null = null,
+): Promise<UserProfile | undefined> {
   try {
     const res = (await User.findOneAndUpdate(
       { userId, guildId },
@@ -15,11 +17,11 @@ export default async function resetDailyCooldown(
           dailyCooldowns: dailyCooldownDefault,
         },
       },
-      { new: true, upsert: true }
-    )) as UserProfile;
+      { new: true, upsert: true },
+    ).session(session)) as UserProfile;
 
-    if (!userCache[guildId]) userCache[guildId] = {};
-    userCache[guildId][userId] = res;
+    // if (!userCache[guildId]) userCache[guildId] = {};
+    // userCache[guildId][userId] = res;
 
     return JSON.parse(JSON.stringify(res));
   } catch (e: any) {

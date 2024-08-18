@@ -9,6 +9,10 @@ import ephemeralReply from '../../embeds/ephemeralReply';
 import commandColors from '../../embeds/commandColors';
 import setStats from '../../economy/stats/setStats';
 import intReply from '../../utils/intReply';
+import mongoTransaction from '../../utils/mongoTransaction';
+import addXp from '../../economy/addXp';
+import addSpecialItems from '../../economy/addSpecialItems';
+import editItemAttribute from '../../economy/editItemAttribute';
 
 const maksat: Command = {
   description:
@@ -70,21 +74,28 @@ const maksat: Command = {
             `**${totalTax}** (${Math.floor(user.payTax * 100)}% nodoklis) = ` +
             `**${latiString(totalToPay, true)}**\n` +
             `Tev ir **${latiString(user.lati)}**` +
-            (user.lati > 1 ? `\n\nLielākā summa ko tu vari vari maksāt ir **${latiString(maxPay)}**` : '')
-        )
+            (user.lati > 1 ? `\n\nLielākā summa ko tu vari vari maksāt ir **${latiString(maxPay)}**` : ''),
+        ),
       );
     }
 
-    const promises = [
-      addLati(target.id, guildId, latiToAdd),
-      addLati(userId, guildId, -totalToPay),
-      setStats(target.id, guildId, { receivedLati: latiToAdd }),
-      setStats(userId, guildId, { paidLati: latiToAdd, taxPaid: totalTax }),
-    ];
-    if (!hasJuridisks) promises.push(addLati(i.client.user!.id, guildId, totalTax));
+    const { ok, values } = await mongoTransaction(session => {
+      const arr = [
+        () => addLati(userId, guildId, -totalToPay, session),
+        () => addLati(target.id, guildId, latiToAdd, session),
+        () => setStats(target.id, guildId, { receivedLati: latiToAdd }, session),
+        () => setStats(userId, guildId, { paidLati: latiToAdd, taxPaid: totalTax }, session),
+      ] as const;
 
-    const [targetUser, resUser] = await Promise.all(promises);
-    if (!targetUser || !resUser) return intReply(i, errorEmbed);
+      // @ts-expect-error
+      if (!hasJuridisks) arr.push(() => addLati(i.client.user!.id, guildId, totalTax, session));
+
+      return arr;
+    });
+
+    if (!ok) return intReply(i, errorEmbed);
+
+    const [resUser, targetUser] = values;
 
     intReply(
       i,
@@ -108,7 +119,7 @@ const maksat: Command = {
             inline: true,
           },
         ],
-      })
+      }),
     );
   },
 };

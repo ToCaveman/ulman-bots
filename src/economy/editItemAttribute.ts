@@ -1,3 +1,4 @@
+import { ClientSession } from 'mongoose';
 import UserProfile, { ItemAttributes, SpecialItemInProfile } from '../interfaces/UserProfile';
 import User from '../schemas/User';
 import userCache from '../utils/userCache';
@@ -8,9 +9,10 @@ export default async function editItemAttribute(
   guildId: string,
   itemId: string,
   newAttributes: ItemAttributes,
-): Promise<{ user: UserProfile; newItem: SpecialItemInProfile } | void> {
+  session: ClientSession | null = null,
+): Promise<{ user: UserProfile; newItem: SpecialItemInProfile } | undefined> {
   try {
-    const user = await findUser(userId, guildId);
+    const user = await findUser(userId, guildId, session);
     if (!user) return;
 
     const { specialItems } = user;
@@ -20,13 +22,14 @@ export default async function editItemAttribute(
 
     specialItems[itemIndex].attributes = newAttributes;
 
+    // prettier-ignore
     const res = (await User.findOneAndUpdate(
       { userId, guildId },
       { $set: { specialItems } },
-      { new: true },
-    )) as UserProfile;
+      { new: true }
+    ).session(session)) as UserProfile;
 
-    userCache[guildId][userId] = res;
+    // userCache[guildId][userId] = res;
 
     return { user: JSON.parse(JSON.stringify(res)), newItem: specialItems[itemIndex] };
   } catch (e: any) {

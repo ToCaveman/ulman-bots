@@ -1,18 +1,19 @@
 import StatsProfile from '../../interfaces/StatsProfile';
 import Stats from '../../schemas/Stats';
-import { ProjectionType } from 'mongoose';
+import { ClientSession, ProjectionType } from 'mongoose';
 
 export default async function getStatsMany(
   clientId: string,
   guildId: string,
-  projection: ProjectionType<StatsProfile>
+  projection: ProjectionType<StatsProfile>,
+  session: ClientSession | null = null,
 ): Promise<StatsProfile[] | undefined> {
   try {
     const res = await Stats.find(
       { guildId, userId: { $not: { $eq: clientId } } },
       // @ts-ignore
-      { _id: 0, userId: 1, ...projection }
-    );
+      { _id: 0, userId: 1, ...projection },
+    ).session(session);
     if (!res) return;
 
     return JSON.parse(JSON.stringify(res)) as StatsProfile[];

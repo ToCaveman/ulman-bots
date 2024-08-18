@@ -1,3 +1,4 @@
+import { ClientSession } from 'mongoose';
 import UserProfile from '../interfaces/UserProfile';
 import User from '../schemas/User';
 import userCache from '../utils/userCache';
@@ -6,10 +7,11 @@ import findUser from './findUser';
 export default async function addTimeCooldown(
   userId: string,
   guildId: string,
-  commandName: string
-): Promise<UserProfile | void> {
+  commandName: string,
+  session: ClientSession | null = null,
+): Promise<UserProfile | undefined> {
   try {
-    const res = await findUser(userId, guildId);
+    const res = await findUser(userId, guildId, session);
     if (!res) return;
 
     const { timeCooldowns } = res;
@@ -24,9 +26,10 @@ export default async function addTimeCooldown(
     const resUser = (await User.findOneAndUpdate(
       { userId, guildId },
       { $set: { timeCooldowns } },
-      { new: true }
-    )) as UserProfile;
-    userCache[guildId][userId] = resUser;
+      { new: true },
+    ).session(session)) as UserProfile;
+
+    // userCache[guildId][userId] = resUser;
 
     return JSON.parse(JSON.stringify(resUser)) as UserProfile;
   } catch (e: any) {

@@ -1,3 +1,4 @@
+import { ClientSession } from 'mongoose';
 import UserProfile, { UserStatus, UserStatusName } from '../interfaces/UserProfile';
 import User from '../schemas/User';
 import userCache from '../utils/userCache';
@@ -6,12 +7,13 @@ import findUser from './findUser';
 export default async function addStatus(
   userId: string,
   guildId: string,
-  statusesToAdd: Partial<UserStatus>
-): Promise<UserProfile | void> {
+  statusesToAdd: Partial<UserStatus>,
+  session: ClientSession | null = null,
+): Promise<UserProfile | undefined> {
   try {
     if (!Object.keys(statusesToAdd).length) return;
 
-    const user = await findUser(userId, guildId);
+    const user = await findUser(userId, guildId, session);
     if (!user) return;
 
     const { status } = user;
@@ -29,9 +31,9 @@ export default async function addStatus(
       { userId, guildId },
       { $set: { status } },
       { new: true }
-    )) as UserProfile;
+    ).session(session)) as UserProfile;
 
-    userCache[guildId][userId] = resUser;
+    // userCache[guildId][userId] = resUser;
 
     return JSON.parse(JSON.stringify(resUser)) as UserProfile;
   } catch (e: any) {

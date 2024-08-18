@@ -1,9 +1,15 @@
+import { ClientSession } from 'mongoose';
 import { UserStats } from '../../interfaces/StatsProfile';
 import Stats from '../../schemas/Stats';
 
 type StatsParam = Partial<Record<keyof UserStats, number | `=${number}`>>;
 
-export default async function setStats(userId: string, guildId: string, stats: StatsParam): Promise<void> {
+export default async function setStats(
+  userId: string,
+  guildId: string,
+  stats: StatsParam,
+  session: ClientSession | null = null,
+): Promise<true | undefined> {
   try {
     const toInc: Partial<Record<keyof UserStats, number>> = {};
     const toMax: Partial<Record<keyof UserStats, number>> = {};
@@ -22,7 +28,8 @@ export default async function setStats(userId: string, guildId: string, stats: S
       toInc[key] = value;
     }
 
-    await Stats.updateOne({ userId, guildId }, { $max: toMax, $inc: toInc }, { upsert: true });
+    await Stats.updateOne({ userId, guildId }, { $max: toMax, $inc: toInc }, { upsert: true }).session(session);
+    return true;
   } catch (e: any) {
     console.log(new Date().toLocaleString(), e.message);
   }

@@ -4,6 +4,7 @@ import userCache from '../utils/userCache';
 import findUser from './findUser';
 import levelsList, { LevelReward, MAX_LEVEL, MAX_LEVEL_REWARD_PER_XP } from '../levelingSystem/levelsList';
 import addItems from './addItems';
+import { ClientSession } from 'mongoose';
 
 interface CalcLevelReturn {
   levelHasIncreased: boolean;
@@ -20,7 +21,7 @@ function calcLevel(
   excessXp: number,
 
   nextLevel = currentLevel,
-  rewards: LevelReward[] = []
+  rewards: LevelReward[] = [],
 ): CalcLevelReturn {
   const levelHasIncreased = currentLevel !== nextLevel;
 
@@ -78,9 +79,14 @@ export interface AddXpReturn {
   maxLevelReward: null | number; // ja sasniedzis maksimālo līmeni tad liekus xp dod latus
 }
 
-export default async function addXp(userId: string, guildId: string, xpToAdd: number): Promise<AddXpReturn | void> {
+export default async function addXp(
+  userId: string,
+  guildId: string,
+  xpToAdd: number,
+  session: ClientSession | null = null,
+): Promise<AddXpReturn | undefined> {
   try {
-    const user = await findUser(userId, guildId);
+    const user = await findUser(userId, guildId, session);
     if (!user) return;
 
     const oldLevel = user.level;
@@ -100,7 +106,7 @@ export default async function addXp(userId: string, guildId: string, xpToAdd: nu
         }
         if (reward.item) {
           // ideāli būtu neveikt velvienu datubāzes pieprasījumu bet addItems ir daudz loģika un šis ir vieglāk
-          const res = await addItems(userId, guildId, reward.item);
+          const res = await addItems(userId, guildId, reward.item, session);
           if (res) {
             user.items = res.items;
             user.specialItems = res.specialItems;
@@ -122,9 +128,9 @@ export default async function addXp(userId: string, guildId: string, xpToAdd: nu
       user.xp = 0;
     }
 
-    const resUser = await User.findOneAndUpdate({ userId, guildId }, { ...user }, { new: true });
+    const resUser = await User.findOneAndUpdate({ userId, guildId }, { ...user }, { new: true }).session(session);
 
-    userCache[guildId][userId] = resUser as UserProfile;
+    // userCache[guildId][userId] = resUser as UserProfile;
     return {
       user: JSON.parse(JSON.stringify(user)),
       levelIncrease: calcRes.levelHasIncreased ? { from: oldLevel, to: user.level, rewards: calcRes.rewards! } : null,

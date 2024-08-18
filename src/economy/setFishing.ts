@@ -1,3 +1,4 @@
+import { ClientSession } from 'mongoose';
 import UserProfile, { UserFishing } from '../interfaces/UserProfile';
 import User from '../schemas/User';
 import userCache from '../utils/userCache';
@@ -6,10 +7,11 @@ import findUser from './findUser';
 export default async function setFishing(
   userId: string,
   guildId: string,
-  fishing: Partial<UserFishing>
-): Promise<UserProfile | void> {
+  fishing: Partial<UserFishing>,
+  session: ClientSession | null = null,
+): Promise<UserProfile | undefined> {
   try {
-    const user = await findUser(userId, guildId);
+    const user = await findUser(userId, guildId, session);
     if (!user) return;
 
     user.fishing = { ...user.fishing, ...fishing };
@@ -17,10 +19,10 @@ export default async function setFishing(
     const res = (await User.findOneAndUpdate(
       { userId, guildId },
       { $set: { fishing: user.fishing } },
-      { new: true }
-    )) as UserProfile;
+      { new: true },
+    ).session(session)) as UserProfile;
 
-    userCache[guildId][userId] = res;
+    // userCache[guildId][userId] = res;
 
     return JSON.parse(JSON.stringify(res));
   } catch (e: any) {
