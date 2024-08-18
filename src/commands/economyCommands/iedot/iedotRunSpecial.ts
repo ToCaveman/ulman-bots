@@ -1,5 +1,6 @@
 import {
   ActionRowBuilder,
+  BaseInteraction,
   ButtonBuilder,
   ButtonStyle,
   ChatInputCommandInteraction,
@@ -11,7 +12,6 @@ import addSpecialItems from '../../../economy/addSpecialItems';
 import findUser from '../../../economy/findUser';
 import removeItemsById from '../../../economy/removeItemsById';
 import setStats from '../../../economy/stats/setStats';
-import buttonHandler from '../../../embeds/buttonHandler';
 import commandColors from '../../../embeds/commandColors';
 import embedTemplate from '../../../embeds/embedTemplate';
 import ephemeralReply from '../../../embeds/ephemeralReply';
@@ -26,25 +26,14 @@ import itemList, { ItemKey } from '../../../items/itemList';
 import intReply from '../../../utils/intReply';
 import { attributeItemSort } from '../inventars/inventars';
 import { cantPayTaxEmbed } from './iedot';
-
-async function iedotSpecialQuery(
-  i: ChatInputCommandInteraction,
-  targetUser: UserProfile,
-  guildId: string,
-  selectedItems: SpecialItemInProfile[],
-) {
-  const user = await removeItemsById(
-    i.user.id,
-    guildId,
-    selectedItems.map(item => item._id!),
-  );
-  await addSpecialItems(targetUser.userId, guildId, selectedItems);
-  return user;
-}
+import { Dialogs } from '../../../utils/Dialogs';
+import errorEmbed from '../../../embeds/errorEmbed';
+import mongoTransaction from '../../../utils/mongoTransaction';
 
 function makeEmbedAfter(
   i: ChatInputCommandInteraction,
   taxLati: number,
+  user: UserProfile,
   targetUser: UserProfile,
   itemsToGive: SpecialItemInProfile[],
   hasJuridisks: boolean,
@@ -55,111 +44,94 @@ function makeEmbedAfter(
     color: commandColors.iedot,
     content: `<@${targetUser.userId}>`,
 
-    description: `**Nodoklis:** ${
+    description: `Nodoklis: ${
       'notSellable' in itemObj
-        ? '0 lati **(nepārdodama manta)**'
+        ? '**0** lati **(nepārdodama manta)**'
         : hasJuridisks
-          ? '0 lati **(juridiska persona)**'
-          : `${latiString(taxLati, false, true)}`
+          ? '**0** lati **(juridiska persona)**'
+          : `${latiString(taxLati, false, true)} (${Math.floor(user.giveTax * 100)}% no mantu kopējās vērtības)`
     }\n<@${targetUser.userId}> tu iedevi:`,
 
     fields: [
-      ...itemsToGive.map(item => ({
-        name: itemString(itemObj, null, true, item.attributes),
-        value:
-          ('notSellable' in itemObj
-            ? ''
-            : `Vērtība: ` +
-              latiString(
-                'customValue' in itemObj && itemObj.customValue ? itemObj.customValue(item.attributes) : itemObj.value,
-                false,
-                true,
-              ) +
-              '\n') + displayAttributes(item),
-        inline: false,
-      })),
+      ...itemsToGive.map(item => {
+        const lati =
+          'customValue' in itemObj && itemObj.customValue ? itemObj.customValue(item.attributes) : itemObj.value;
+
+        return {
+          name: itemString(itemObj, null, true, item.attributes),
+          value:
+            ('notSellable' in itemObj ? '' : `Vērtība: ${latiString(lati, false, true)}\n`) + displayAttributes(item),
+          inline: false,
+        };
+      }),
     ],
   });
 }
 
-function makeEmbed(
-  i: ChatInputCommandInteraction,
-  itemsInInv: SpecialItemInProfile[],
-  itemObj: Item,
-  targetUserId: string,
-  user: UserProfile,
-  hasJuridisks: boolean,
-  taxLati?: number,
-) {
-  return embedTemplate({
-    i,
-    color: commandColors.iedot,
-    description:
-      `Tavā inventārā ir **${itemString(itemObj, itemsInInv.length)}**\n` +
-      `No saraksta izvēlies vienu vai vairākas mantas ko iedot <@${targetUserId}>\n\n` +
-      `**Nodoklis:** ` +
-      ('notSellable' in itemObj
-        ? `0 lati **(nepārdodama manta)**`
-        : hasJuridisks
-          ? `0 lati **(${itemList.juridiska_zivs.emoji()} juridiska persona)**`
-          : `${taxLati ? latiString(taxLati) : '-'} (${Math.floor(user.giveTax * 100)}% no mantu kopējās vērtības)`),
-  }).embeds!;
-}
+type State = {
+  itemsInInv: SpecialItemInProfile[];
+  itemObj: AttributeItem<ItemAttributes>;
+  targetUserId: string;
+  user: UserProfile;
+  hasJuridisks: boolean;
 
-function makeComponents(
-  itemsInInv: SpecialItemInProfile[],
-  itemObj: AttributeItem<ItemAttributes>,
-  selectedItems: SpecialItemInProfile[],
-  totalTax = 0,
-  userLati = 0,
-  hasGiven = false,
-) {
-  const selectedIds = selectedItems.map(item => item._id!);
+  selectedItems: SpecialItemInProfile[];
+  totalTax: number;
+  hasGiven: boolean;
+};
 
-  return [
+function view(state: State, i: BaseInteraction) {
+  const selectedIds = state.selectedItems.map(item => item._id!);
+
+  const components = [
     new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
       new StringSelectMenuBuilder()
         .setCustomId('iedot_special_select')
+        .setDisabled(state.hasGiven)
         .setPlaceholder('Izvēlies ko iedot')
         .setMinValues(1)
-        .setMaxValues(itemsInInv.length)
+        .setMaxValues(Math.min(state.itemsInInv.length, 25))
         .setOptions(
-          itemsInInv
+          state.itemsInInv
             .slice(0, 25)
             .sort((a, b) => {
-              const valueA = itemObj.customValue ? itemObj.customValue(a.attributes) : itemObj.value;
-              const valueB = itemObj.customValue ? itemObj.customValue(b.attributes) : itemObj.value;
+              const valueA = state.itemObj.customValue ? state.itemObj.customValue(a.attributes) : state.itemObj.value;
+              const valueB = state.itemObj.customValue ? state.itemObj.customValue(b.attributes) : state.itemObj.value;
+
               if (valueA === valueB) {
-                return attributeItemSort(a.attributes, b.attributes, itemObj.sortBy);
+                return attributeItemSort(a.attributes, b.attributes, state.itemObj.sortBy);
               }
 
               return valueB - valueA;
             })
-            .map(item => ({
-              label: itemStringCustom(itemObj, item.attributes?.customName),
-              description:
-                ('notSellable' in itemObj
-                  ? ''
-                  : `${latiString(
-                      'customValue' in itemObj && itemObj.customValue
-                        ? itemObj.customValue(item.attributes)
-                        : itemObj.value,
-                    )} | `) + displayAttributes(item, true),
-              value: item._id!,
-              emoji: (itemObj.customEmoji ? itemObj.customEmoji(item.attributes) : itemObj.emoji()) || '❓',
-              default: !!selectedIds.length && selectedIds!.includes(item._id!),
-            })),
+            .map(item => {
+              const lati =
+                'customValue' in state.itemObj && state.itemObj.customValue
+                  ? state.itemObj.customValue(item.attributes)
+                  : state.itemObj.value;
+
+              return {
+                label: itemStringCustom(state.itemObj, item.attributes?.customName),
+                description:
+                  ('notSellable' in state.itemObj ? '' : `${latiString(lati)} | `) + displayAttributes(item, true),
+                value: item._id!,
+                emoji:
+                  (state.itemObj.customEmoji ? state.itemObj.customEmoji(item.attributes) : state.itemObj.emoji()) ||
+                  '❓',
+                default: !!selectedIds.length && selectedIds!.includes(item._id!),
+              };
+            }),
         ),
     ),
     new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
         .setCustomId('iedot_special_confirm')
-        .setDisabled(!selectedIds.length || userLati < totalTax)
-        .setLabel(userLati < totalTax ? 'Iedot (nepietiek naudas)' : 'Iedot')
+        .setDisabled(state.hasGiven || !selectedIds.length || state.user.lati < state.totalTax)
+        .setLabel(state.user.lati < state.totalTax ? 'Iedot (nepietiek naudas)' : 'Iedot')
         .setStyle(
-          hasGiven // šizofrēnija
+          state.hasGiven
             ? ButtonStyle.Success
-            : userLati < totalTax
+            : state.user.lati < state.totalTax
               ? ButtonStyle.Danger
               : selectedIds.length
                 ? ButtonStyle.Primary
@@ -167,6 +139,22 @@ function makeComponents(
         ),
     ),
   ];
+
+  return embedTemplate({
+    i,
+    color: commandColors.iedot,
+    description:
+      `Tavā inventārā ir **${itemString(state.itemObj, state.itemsInInv.length)}**\n` +
+      `No saraksta izvēlies vienu vai vairākas mantas ko iedot <@${state.targetUserId}>\n\n` +
+      `**Nodoklis:** ` +
+      ('notSellable' in state.itemObj
+        ? `0 lati **(nepārdodama manta)**`
+        : state.hasJuridisks
+          ? `0 lati **(${itemList.juridiska_zivs.emoji()} juridiska persona)**`
+          : `${state.totalTax ? latiString(state.totalTax) : '-'} ` +
+            `(${Math.floor(state.user.giveTax * 100)}% no mantu kopējās vērtības)`),
+    components,
+  });
 }
 
 function checkTargetInv(targetUser: UserProfile, amountToGive: number): boolean {
@@ -193,7 +181,6 @@ export default async function iedotRunSpecial(
   const guildId = i.guildId!;
 
   const itemObj = itemList[itemKey] as AttributeItem<ItemAttributes>;
-  let selectedItems: SpecialItemInProfile[] = [];
 
   let totalTax: number;
 
@@ -220,122 +207,148 @@ export default async function iedotRunSpecial(
       return intReply(i, cantPayTaxEmbed(itemObj, 1, totalTax, user));
     }
 
-    await Promise.all([
-      iedotSpecialQuery(i, targetUser, guildId, itemsInInv),
-      setStats(targetUser.userId, guildId, { itemsReceived: 1 }),
-      setStats(userId, guildId, { itemsGiven: 1, taxPaid: totalTax }),
-    ]);
+    const { ok } = await mongoTransaction(session => {
+      const arr = [
+        // prettier-ignore
+        () => removeItemsById(i.user.id, guildId, itemsInInv.map(item => item._id!), session),
+        () => addSpecialItems(targetUser.userId, guildId, itemsInInv, session),
+        () => setStats(targetUser.userId, guildId, { itemsReceived: 1 }, session),
+        () => setStats(userId, guildId, { itemsGiven: 1, taxPaid: totalTax }, session),
+      ];
 
-    if (!hasJuridisks && totalTax) {
-      await Promise.all([addLati(userId, guildId, -totalTax), addLati(i.client.user!.id, guildId, totalTax)]);
-    }
+      if (!hasJuridisks && totalTax) {
+        arr.push(
+          () => addLati(userId, guildId, -totalTax, session),
+          () => addLati(i.client.user!.id, guildId, totalTax, session),
+        );
+      }
 
-    intReply(i, makeEmbedAfter(i, totalTax, targetUser, itemsInInv, hasJuridisks, itemObj));
-    return;
+      return arr;
+    });
+
+    if (!ok) return intReply(i, errorEmbed);
+
+    return intReply(i, makeEmbedAfter(i, totalTax, user, targetUser, itemsInInv, hasJuridisks, itemObj));
   }
 
-  const msg = await intReply(i, {
-    embeds: makeEmbed(i, itemsInInv, itemObj, targetUser.userId, user, hasJuridisks),
-    components: makeComponents(itemsInInv, itemObj, selectedItems),
-    fetchReply: true,
-  });
-  if (!msg) return;
+  const initialState: State = {
+    itemsInInv,
+    itemObj,
+    targetUserId: targetUser.userId,
+    user,
+    hasJuridisks,
 
-  await buttonHandler(
-    i,
-    'iedot',
-    msg,
-    async int => {
-      const { customId } = int;
-      if (customId === 'iedot_special_select') {
-        if (int.componentType !== ComponentType.StringSelect) return;
-        selectedItems = itemsInInv.filter(item => int.values.includes(item._id!));
+    selectedItems: [],
+    totalTax: 0,
+    hasGiven: false,
+  };
 
-        const userAfterSelect = await findUser(userId, guildId);
-        if (!userAfterSelect) return { error: true };
+  const dialogs = new Dialogs(i, initialState, view, 'iedot', { time: 60000 });
 
-        if (hasJuridisks || 'notSellable' in itemObj) {
-          totalTax = 0;
-        } else {
-          totalTax =
-            Math.floor(
-              ('customValue' in itemObj && itemObj.customValue
-                ? selectedItems.reduce((prev, item) => prev + itemObj.customValue!(item.attributes), 0)
-                : itemObj.value * selectedItems.length) * userAfterSelect.giveTax,
-            ) || 1;
-        }
+  if (!(await dialogs.start())) {
+    return intReply(i, errorEmbed);
+  }
 
-        return {
-          edit: {
-            embeds: makeEmbed(i, itemsInInv, itemObj, targetUser.userId, userAfterSelect, hasJuridisks, totalTax),
-            components: makeComponents(itemsInInv, itemObj, selectedItems, totalTax, userAfterSelect.lati),
-          },
-        };
-      } else if (customId === 'iedot_special_confirm') {
-        if (int.componentType !== ComponentType.Button) return;
-        if (!selectedItems.length) return;
+  dialogs.onClick(async (int, state) => {
+    const { customId, componentType } = int;
 
-        const targetUserNew = await findUser(targetUser.userId, guildId);
-        if (!targetUserNew) return { error: true };
+    if (customId === 'iedot_special_select' && componentType === ComponentType.StringSelect) {
+      state.selectedItems = itemsInInv.filter(item => int.values.includes(item._id!));
 
-        const hasInvSpace = checkTargetInv(targetUserNew, selectedItems.length);
-        if (!hasInvSpace) {
-          intReply(int, noInvSpaceEmbed(targetUserNew, itemObj, selectedItems.length));
-          return { end: true };
-        }
+      if (hasJuridisks || 'notSellable' in itemObj) {
+        state.totalTax = 0;
+      } else {
+        state.totalTax =
+          Math.floor(
+            (itemObj.customValue
+              ? state.selectedItems.reduce((prev, item) => prev + itemObj.customValue!(item.attributes), 0)
+              : itemObj.value * state.selectedItems.length) * state.user.giveTax,
+          ) || 1;
+      }
 
-        const checkRes = checkUserSpecialItems(targetUserNew, itemKey, selectedItems.length);
-        if (!checkRes.valid) {
-          intReply(int, ephemeralReply(`Neizdevās iedot, jo ${checkRes.reason}`));
-          return { end: true };
-        }
+      return { update: true };
+    } else if (
+      customId === 'iedot_special_confirm' &&
+      componentType === ComponentType.Button &&
+      state.selectedItems.length
+    ) {
+      const targetUserNew = await findUser(targetUser.userId, guildId);
+      if (!targetUserNew) return { error: true };
 
-        const user = await findUser(userId, guildId);
-        if (!user) return { error: true };
+      const hasInvSpace = checkTargetInv(targetUserNew, state.selectedItems.length);
+      if (!hasInvSpace) {
+        intReply(int, noInvSpaceEmbed(targetUserNew, itemObj, state.selectedItems.length));
+        return { end: true };
+      }
 
-        if (user.lati < totalTax) {
-          return {
-            after: () => {
-              intReply(int, cantPayTaxEmbed(itemObj, selectedItems.length, totalTax, user));
-            },
-          };
-        }
+      const checkRes = checkUserSpecialItems(targetUserNew, itemKey, state.selectedItems.length);
+      if (!checkRes.valid) {
+        intReply(int, ephemeralReply(`Neizdevās iedot, jo ${checkRes.reason}`));
+        return { end: true };
+      }
 
-        const userItemIds = user.specialItems.map(item => item._id!);
-        for (const specItem of selectedItems) {
-          if (!userItemIds.includes(specItem._id!)) {
-            return {
-              after: () => {
-                intReply(
-                  int,
-                  ephemeralReply('Tavs inventāra saturs ir mainījies, kāda no izvēlētām mantām nav tavā inventārā'),
-                );
-              },
-            };
-          }
-        }
+      const user = await findUser(userId, guildId);
+      if (!user) return { error: true };
 
-        await Promise.all([
-          iedotSpecialQuery(i, targetUser, guildId, selectedItems),
-          setStats(targetUser.userId, guildId, { itemsReceived: selectedItems.length }),
-          setStats(userId, guildId, { itemsGiven: selectedItems.length, taxPaid: totalTax }),
-        ]);
-
-        if (!hasJuridisks && totalTax) {
-          await Promise.all([addLati(userId, guildId, -totalTax), addLati(i.client.user!.id, guildId, totalTax)]);
-        }
-
+      if (user.lati < state.totalTax) {
         return {
           end: true,
-          edit: {
-            components: makeComponents(itemsInInv, itemObj, selectedItems, totalTax, user.lati, true),
-          },
           after: () => {
-            intReply(int, makeEmbedAfter(i, totalTax, targetUser, selectedItems, hasJuridisks, itemObj));
+            intReply(int, cantPayTaxEmbed(itemObj, state.selectedItems.length, state.totalTax, user));
           },
         };
       }
-    },
-    60000,
-  );
+
+      const userItemIds = user.specialItems.map(item => item._id!);
+      for (const specItem of state.selectedItems) {
+        if (!userItemIds.includes(specItem._id!)) {
+          return {
+            end: true,
+            after: () => {
+              intReply(
+                int,
+                ephemeralReply('Tavs inventāra saturs ir mainījies, kāda no izvēlētām mantām vairs nav tavā inventārā'),
+              );
+            },
+          };
+        }
+      }
+
+      const { ok } = await mongoTransaction(session => {
+        const arr = [
+          // prettier-ignore
+          () => removeItemsById(userId, guildId, state.selectedItems.map(item => item._id!), session),
+          () => addSpecialItems(targetUser.userId, guildId, state.selectedItems, session),
+          () => setStats(targetUser.userId, guildId, { itemsReceived: state.selectedItems.length }, session),
+          () => setStats(userId, guildId, { itemsGiven: state.selectedItems.length, taxPaid: state.totalTax }, session),
+        ];
+
+        if (!hasJuridisks && state.totalTax) {
+          arr.push(
+            () => addLati(userId, guildId, -state.totalTax, session),
+            () => addLati(i.client.user!.id, guildId, state.totalTax, session),
+          );
+        }
+
+        return arr;
+      });
+
+      if (!ok) return { error: true };
+
+      state.hasGiven = true;
+
+      return {
+        end: true,
+        edit: true,
+        after: () => {
+          intReply(
+            int,
+            makeEmbedAfter(i, state.totalTax, state.user, targetUser, state.selectedItems, hasJuridisks, itemObj),
+          );
+        },
+      };
+    }
+  });
+
+  return;
 }
