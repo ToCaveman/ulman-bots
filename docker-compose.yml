@@ -1,20 +1,30 @@
-version: '3.8'
-
 services:
   mongo:
-    image: mongo
+    build:
+      dockerfile: ./docker/mongo/Dockerfile
+    command: ["--config", "/etc/mongo.conf", "--replSet", "rs0"]
     restart: always
     container_name: ulmanbots_mongo
-    command: mongod --auth
     ports:
       - '127.0.0.1:27017:27017'
     volumes:
       - mongodata_ulmanbots:/data/db
-      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+      - ./docker/mongo/mongo.conf:/etc/mongo.conf:ro
+      - ./docker/mongo/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: password
       MONGO_INITDB_DATABASE: admin
+    healthcheck:
+      test: "mongosh -u root -p password --authenticationDatabase admin --eval \"try {
+          rs.status().ok
+        } catch (e) {
+          rs.initiate({ '_id': 'rs0', 'members': [{ '_id': 0, 'host': 'localhost:27017' }] }).ok
+        }\""
+      interval: 10s
+      timeout: 30s
+      start_period: 2s
+      retries: 10
 
 volumes:
   mongodata_ulmanbots:
