@@ -1,3 +1,4 @@
+import { ClientSession } from 'mongoose';
 import findUser from '../../../economy/findUser';
 import setFishing from '../../../economy/setFishing';
 import UserProfile, { FishObj, UserFishing } from '../../../interfaces/UserProfile';
@@ -21,13 +22,13 @@ function generateFish(fishing: UserFishing, currentTime: number, overrideFish = 
 
   while (totalCost < fishing.usesLeft) {
     const fishChances = Object.fromEntries(
-      Object.entries(data.fishChances).filter(([, obj]) => obj.cost <= fishing.usesLeft - totalCost)
+      Object.entries(data.fishChances).filter(([, obj]) => obj.cost <= fishing.usesLeft - totalCost),
     ) as FishChance;
 
     const { key, obj } = chance(fishChances);
 
     const timeForFish = Math.floor(
-      (Math.random() * (data.timeMaxHours - data.timeMinHours) + data.timeMinHours) * ONE_HOUR
+      (Math.random() * (data.timeMaxHours - data.timeMinHours) + data.timeMinHours) * ONE_HOUR,
     );
 
     lastTime += timeForFish;
@@ -45,7 +46,7 @@ export function countFish(fish: UserFishing['caughtFishes']) {
 
 function calcCaughtFish(
   fishing: UserFishing,
-  currentTime: number
+  currentTime: number,
 ): {
   usesLeft: number;
   futureFishList: FishObj[] | null;
@@ -110,9 +111,10 @@ export default async function syncFishing(
   guildId: string,
   generateNewFish = false,
   overrideOldFish = false,
-  shiftTimeMillis?: number
-): Promise<UserProfile | void> {
-  const user = await findUser(userId, guildId);
+  shiftTimeMillis?: number,
+  session: ClientSession | null = null,
+): Promise<UserProfile | undefined> {
+  const user = await findUser(userId, guildId, session);
   if (!user || user.level < ZVEJOT_MIN_LEVEL) return;
 
   const { fishing } = user;
@@ -133,5 +135,5 @@ export default async function syncFishing(
 
   // newFishList.forEach(fish => console.log(fish, new Date(fish.time).toLocaleString()));
 
-  return setFishing(userId, guildId, { caughtFishes, futureFishList, usesLeft, lastCaughtFish });
+  return setFishing(userId, guildId, { caughtFishes, futureFishList, usesLeft, lastCaughtFish }, session);
 }
