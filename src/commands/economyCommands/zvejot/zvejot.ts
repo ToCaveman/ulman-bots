@@ -22,8 +22,6 @@ import itemList, { ItemKey } from '../../../items/itemList';
 import intReply from '../../../utils/intReply';
 import maksekeresData from './makskeresData';
 import syncFishing from './syncFishing';
-import zvejotComponents from './zvejotComponents';
-import { zvejotEmbed } from './zvejotEmbeds';
 import { Dialogs } from '../../../utils/Dialogs';
 import zvejotView, { ZvejotState } from './zvejotView';
 import mongoTransaction from '../../../utils/mongoTransaction';
@@ -41,7 +39,7 @@ export function calcRepairCost(itemKey: ItemKey, usesLeft: number) {
 export const ZVEJOT_MIN_LEVEL = 0;
 
 const zvejot: Command = {
-  description:
+  description: () =>
     'Copēt zivis DižLatvijas ūdeņos\n\n' +
     'Lai zvejotu tev ir nepieciešama makšķere, kad esi ieguvis makšķeri izvēlies to ar `/zvejot` komandu un sāc zvejot\n' +
     'Zvejošana notiek automātiski, līdz brīdim kad makšķerei beigsies izturība, vai arī zvejošanas inventārs ir pilns\n' +

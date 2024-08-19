@@ -28,7 +28,7 @@ const akcijaNameData: Exclude<
 };
 
 const akcijas: Command = {
-  description: 'Akcijas',
+  description: () => 'Akcijas',
   color: commandColors.maks,
   data: {
     name: 'akcijas',

@@ -19,7 +19,7 @@ import updatesList from '../palidziba/jaunumi/updatesList';
 import emoji from '../../../utils/emoji';
 
 const info: Command = {
-  description: 'Iegūt detalizētu informāciju par kādu mantu - vērtība, cena, tirgus cena, makšķeres informācija, utt.',
+  description: () => 'Iegūt detalizētu informāciju par kādu mantu - vērtība, cena, tirgus cena, makšķeres informācija, utt.',
   color: commandColors.info,
   data: {
     name: 'info',

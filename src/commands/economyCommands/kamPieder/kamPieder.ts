@@ -8,7 +8,7 @@ import allItemAutocomplete from '../info/allItemAutocomplete';
 import kamPiederRun from './kamPiederRun';
 
 const kamPieder: Command = {
-  description: 'Redzēt kuriem lietotājiem pieder noteikta manta',
+  description: () => 'Redzēt kuriem lietotājiem pieder noteikta manta',
   color: commandColors.info,
   data: {
     name: 'kam-pieder',

@@ -18,7 +18,7 @@ export const TOP_USERS_PER_PAGE = 10;
 export const TOP_MAX_PAGES = 10;
 
 const top: Command = {
-  description: 'Apskatīt severa lietotāja topu',
+  description: () => 'Apskatīt severa lietotāja topu',
   color: commandColors.top,
   data: topData,
   async run(i) {

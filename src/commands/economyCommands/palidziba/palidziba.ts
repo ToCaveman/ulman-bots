@@ -15,7 +15,7 @@ export function getPalidzibaChoices() {
 }
 
 const palidziba: Command = {
-  description: '???',
+  description: () => '???',
   color: commandColors.info,
   data: {
     name: 'palidziba',
@@ -57,7 +57,7 @@ const palidziba: Command = {
             i,
             color: this.color,
             title: `Palīdzība - /${cmdName}`,
-            description: cmd.description,
+            description: cmd.description(),
           })
         );
       }

@@ -55,7 +55,7 @@ function getBoughtItems({ tirgus }: UserProfile) {
 }
 
 const tirgus: Command = {
-  description:
+  description: () =>
     'Tirgū var nopirkt īpašas mantas, kas nav pieejamas nekur citur (ar retiem izņēmumiem)\n\n' +
     'Atšķirībā no veikala, tirgus preces ir nopērkamas par citām mantām (dažām mantām cenā ir arī lati)\n' +
     'Katrs lietotājs var nopirkt katru no tirgus mantām tikai **VIENU** reizi noteiktā dienā\n' +

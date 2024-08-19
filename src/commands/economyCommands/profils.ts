@@ -20,7 +20,7 @@ export const statusList: Record<UserStatusName, string> = {
 };
 
 const profils: Command = {
-  description:
+  description: () =>
     'Apskatīties savu vai kāda lietotāja profilu\n' +
     'Profilā ir iespējams redzēt:\n' +
     '- Darba profesiju\n' +

@@ -6,7 +6,7 @@ import ruleteRun from './ruleteRun';
 export type KazinoLikme = 'viss' | 'virve' | number;
 
 const rulete: Command = {
-  description:
+  description: () =>
     'Otrs iecienītākais veids kā iztērēt visu savu naudu\n\n' +
     'Ja ruletes komandai izvēlēsies `pozīcija`, tad tev būs jāizvēlas viena no pozīcijām uz kā likt likmi, pozīcijām reizinātājs ir **2x**\n' +
     'Ja izvēlēsies `skaitlis`, tad tev būs jāizvēlās skaitlis no **0** līdz **36** uz kā likt likmi, skaitļiem reizinātājs ir **35x**\n\n' +

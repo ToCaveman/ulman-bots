@@ -10,7 +10,7 @@ import wrongKeyEmbed from '../../../embeds/wrongKeyEmbed';
 import intReply from '../../../utils/intReply';
 
 const pirkt: Command = {
-  description:
+  description: () =>
     'Nopirkt kādu preci no veikalā pieejamām precēm\n' +
     'Preces iespējams nopirkt arī caur veikalu (komanda `/veikals`)\n\n' +
     'Ja neievadīsi preces daudzumu komandā, tad tiks nopirkta 1 prece',

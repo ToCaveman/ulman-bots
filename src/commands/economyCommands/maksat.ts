@@ -15,7 +15,7 @@ import addSpecialItems from '../../economy/addSpecialItems';
 import editItemAttribute from '../../economy/editItemAttribute';
 
 const maksat: Command = {
-  description:
+  description: () =>
     'Pārskaitīt citam lietotājam latus\n' +
     `Maksājot naudu citam lietotājam ir arī jāmaksā nodoklis - **10%**\n` +
     'Maksāšanas nodokli ir iespējams samazināt sasniedzot noteiktus līmeņus\n' +

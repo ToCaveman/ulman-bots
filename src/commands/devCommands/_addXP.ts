@@ -7,7 +7,7 @@ import latiString from '../../embeds/helpers/latiString';
 import intReply from '../../utils/intReply';
 
 const _addXP: Command = {
-  description: 'Pievienot UlmaņPunktus',
+  description: () => 'Pievienot UlmaņPunktus',
   color: 0xffffff,
   data: {
     name: 'addxp',

@@ -106,7 +106,7 @@ function view({ user, chosenJob, currentJob }: State, i: BaseInteraction) {
 }
 
 const vakances: Command = {
-  description:
+  description: () =>
     'Apskatīt visas pieejamās darbu pozīcijas\n' +
     'Darba pozīcija ietekmē strādāšanu (komanda `/stradat`)\n' +
     'Pozīciju var nomainīt jebkurā brīdī',

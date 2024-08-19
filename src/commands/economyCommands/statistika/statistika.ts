@@ -17,7 +17,7 @@ export function displayPlace(index: number): string {
 }
 
 const statistika: Command = {
-  description: 'Apskatīt savu, vai kāda cita servera statistiku',
+  description: () => 'Apskatīt savu, vai kāda cita servera statistiku',
   color: commandColors.statistika,
   data: {
     name: 'statistika',

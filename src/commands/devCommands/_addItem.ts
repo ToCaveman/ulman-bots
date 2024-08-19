@@ -9,7 +9,7 @@ import intReply from '../../utils/intReply';
 import allItemAutocomplete from '../economyCommands/info/allItemAutocomplete';
 
 const _addItem: Command = {
-  description: 'Pievienot mantu inventārā',
+  description: () => 'Pievienot mantu inventārā',
   color: 0xffffff,
   data: {
     name: 'additem',

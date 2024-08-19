@@ -3,7 +3,7 @@ import { AutocompleteInteraction, ChatInputApplicationCommandData, ChatInputComm
 // interfeiss bota komandu objektiem
 interface Command {
   // palīdzības apraksts
-  description: string;
+  description: () => string;
 
   // krāsa embediem
   color: number;

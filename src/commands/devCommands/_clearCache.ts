@@ -3,7 +3,7 @@ import intReply from '../../utils/intReply';
 import { clearCache } from '../../utils/userCache';
 
 const _clearCache: Command = {
-  description: 'Iztīrīt ulmaņbota cache',
+  description: () => 'Iztīrīt ulmaņbota cache',
   color: 0xffffff,
   data: {
     name: 'clearcache',

@@ -8,7 +8,7 @@ import addLati from '../../economy/addLati';
 import intReply from '../../utils/intReply';
 
 const _addLati: Command = {
-  description: 'Pievienot latus',
+  description: () => 'Pievienot latus',
   color: 0xffffff,
   data: {
     name: 'addlati',

@@ -24,7 +24,7 @@ function view(state: State, i: BaseInteraction) {
 }
 
 const iestatit: Command = {
-  description: 'Kruķīt lietotāja īpašības (testēšanai)',
+  description: () => 'Kruķīt lietotāja īpašības (testēšanai)',
   color: 0xffffff,
   data: {
     name: 'iestatit',

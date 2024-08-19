@@ -19,7 +19,7 @@ const PABALSTS_XP = 5;
 const PABALSTS_LATI = 50;
 
 const pabalsts: Command = {
-  description:
+  description: () =>
     '**OkDraudziņDauni serverim ekskluzīva komanda**\n' +
     `Pabalsts ir saņemams vienu reizi dienā, tas dod ` +
     `${latiString(PABALSTS_LATI, true, true)} un **${PABALSTS_XP}** UlmaņPunktus`,

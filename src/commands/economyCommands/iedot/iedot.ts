@@ -29,7 +29,7 @@ export function cantPayTaxEmbed(itemToGive: Item, amountToGive: number, totalTax
 }
 
 const iedot: Command = {
-  description:
+  description: () =>
     'Iedot kādam lietotājam kādu no savām mantām (vai vairākas)\n\n' +
     '__**Par nodokli:**__\n' +
     'Lai dotu mantas ir jāmaksā nodoklis - **15%** no dodamo mantu vērtības\n' +

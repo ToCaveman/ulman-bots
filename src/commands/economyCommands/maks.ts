@@ -9,7 +9,7 @@ import commandColors from '../../embeds/commandColors';
 import intReply from '../../utils/intReply';
 
 const maks: Command = {
-  description: 'Apskatīties savu vai kāda lietotāja maku (latu daudzumu)',
+  description: () => 'Apskatīties savu vai kāda lietotāja maku (latu daudzumu)',
   color: commandColors.maks,
   data: {
     name: 'maks',

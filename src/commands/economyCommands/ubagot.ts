@@ -98,7 +98,7 @@ function ubagotEmbed(
 }
 
 const ubagot: Command = {
-  description:
+  description: () =>
     'Žēlīgi krati savu krūzīti un ceri ka kāds iemetīs kādu santīmu\n' +
     `Ubagot var **${MAX_DAILY}** reizes dienā, ` +
     `un komandu var izmantot ik \`${millisToReadableTime(UBAGOT_COOLDOWN)}\``,

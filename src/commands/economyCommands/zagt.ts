@@ -30,7 +30,7 @@ const MAX_BANKA_STEAL = 1500;
 const ZAGT_COOLDOWN = 900_000; //15 min
 
 const zagt: Command = {
-  description:
+  description: () =>
     '__**Zagšana no lietotāja**__\n' +
     `Zogot no kāda cita tiek izvēlēta nozagtās naudas summa, kas tiek aprēķināta nejauši\n` +
     `Gan tev, gan lietotājam no kā zodz ir jābūt vismaz **${ZAGT_MIN_LATI}** latiem\n` +

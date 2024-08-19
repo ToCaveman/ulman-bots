@@ -11,7 +11,7 @@ import izsoleList from './IzsoleList';
 import izsolesDelete from './izsolesDelete';
 
 const izsole: Command = {
-  description: '',
+  description: () => '',
   color: 0xffffff,
   data: {
     name: 'izsole',

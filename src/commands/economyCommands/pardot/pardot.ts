@@ -19,7 +19,7 @@ export function emptyInvEmbed() {
 }
 
 const pardot: Command = {
-  description:
+  description: () =>
     'Pārdot kādu noteiktu mantu, nelietojamās mantas, vai visas mantas no sava inventāra\n' +
     'Cenšoties pārdot visas mantas ar komandu `/pardot visas`, tiks parādīts apstiprināšanas dialogs, lai netīšām nepārdotu visu\n' +
     'Visas un nelietojamās mantas ir iespējams pārdot arī caur inventāru (komanda `/inv`)\n\n' +

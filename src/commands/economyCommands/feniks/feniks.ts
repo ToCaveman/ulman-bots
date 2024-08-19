@@ -38,7 +38,7 @@ function infoEmbed(i: ChatInputCommandInteraction) {
 }
 
 const feniks: Command = {
-  description:
+  description: () =>
     'Visiecienītākais veids kā iztērēt visu savu naudu\n\n' +
     'Griez ar noteiktu likmi, vai arī izmanto komandu `/feniks virve` lai grieztu ar nenoteiktu likmi (ļauj liktenim izlemt)\n' +
     'Informāciju par reizinātājiem var uzzināt ar komandu `/feniks laimesti_info`\n\n' +

@@ -11,7 +11,7 @@ import { UsableItem } from '../../../interfaces/Item';
 import intReply from '../../../utils/intReply';
 
 const izmantot: Command = {
-  description:
+  description: () =>
     'Izmantot kādu (izmantojamu) mantu no inventāra\n\n' +
     'Ja vēlies uzzināt ko dara kāda noteikta manta izmanto komandu `/info`',
   color: commandColors.izmantot,

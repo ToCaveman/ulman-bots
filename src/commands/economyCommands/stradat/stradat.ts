@@ -46,7 +46,7 @@ function embedTitle({ dailyCooldowns }: UserProfile, jobPosition: string) {
 }
 
 const stradat: Command = {
-  description:
+  description: () =>
     'Strādāt sevis izvēlētajā darbā un pelnīt naudu\n\n' +
     'Darba pozīciju var izvēlēties ar komandu `/vakances`\n' +
     'Lietotājiem no sākuma būs pieejama tikai 1 darba pozīcija, taču var atbloķēt citas sasniedzot noteiktus līmeņus\n' +

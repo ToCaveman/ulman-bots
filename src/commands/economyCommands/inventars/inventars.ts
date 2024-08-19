@@ -152,7 +152,7 @@ export function getInvValue({ items, specialItems }: UserProfile) {
 export const INV_PAGE_SIZE = 12;
 
 const inventars: Command = {
-  description:
+  description: () =>
     'Apskatīt savu, vai cita lietotāja inventāru\n' +
     'Inventārā tiek glabātas visas lietotāja mantas\n' +
     'Caur inventāru ir iespējams arī pārdot nelietojamās vai visas mantas\n\n' +

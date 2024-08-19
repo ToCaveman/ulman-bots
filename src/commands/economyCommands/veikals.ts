@@ -145,7 +145,7 @@ function view({ user, shopItems, chosenItem, chosenAmount, resetTime, timeUntilR
 }
 
 const veikals: Command = {
-  description:
+  description: () =>
     'Apskatīt visas preces, kas nopērkamas veikalā\n' +
     `Veikalā dažām precēm vienmēr būs atlaides, kas mainās katru dienu plkst. ${midNightStr()}`,
   color: commandColors.veikals,
