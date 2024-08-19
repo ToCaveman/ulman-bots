@@ -9,9 +9,9 @@ export default async function getAllUsers(
   session: ClientSession | null = null,
 ): Promise<UserProfile[] | undefined> {
   try {
-    // @ts-ignore, dabū visus lietotājus serverī izņemot pašu botu
     const res = await User.find(
       { guildId, userId: { $not: { $eq: clientId } } },
+      // @ts-ignore
       { _id: 0, userId: 1, ...projection },
     ).session(session);
 
