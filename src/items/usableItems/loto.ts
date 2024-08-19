@@ -213,6 +213,7 @@ function view(state: State, i: BaseInteraction) {
 
   return embedTemplate({
     i,
+    content: '\u200b',
     title: `Izmantot: ${itemString(itemKey, null, true)}`,
     description: scratchesLeftText(scratchesLeft, true),
     color,
