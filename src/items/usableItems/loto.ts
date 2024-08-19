@@ -9,19 +9,19 @@ import itemString from '../../embeds/helpers/itemString';
 import shuffleArray from '../helpers/shuffleArray';
 import {
   ActionRowBuilder,
+  BaseInteraction,
   ButtonBuilder,
-  ButtonInteraction,
   ButtonStyle,
-  ChatInputCommandInteraction,
   ComponentEmojiResolvable,
   ComponentType,
 } from 'discord.js';
-import buttonHandler from '../../embeds/buttonHandler';
 import addLati from '../../economy/addLati';
 import addItems from '../../economy/addItems';
 import smallEmbed from '../../embeds/smallEmbed';
 import commandColors from '../../embeds/commandColors';
 import emoji from '../../utils/emoji';
+import { Dialogs } from '../../utils/Dialogs';
+import ephemeralReply from '../../embeds/ephemeralReply';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function testLaimesti(options: LotoOptions, count: number) {
@@ -75,7 +75,7 @@ type LotoArray = {
 
 function generateLotoArr(
   { rows, columns, minRewards, maxRewards, rewards }: LotoOptions,
-  printBoard = false
+  printBoard = false,
 ): LotoArray {
   const rewardsCount = Math.floor(Math.random() * (maxRewards - minRewards) + minRewards);
 
@@ -94,9 +94,9 @@ function generateLotoArr(
         shuffled
           .slice(row * columns, (row + 1) * columns)
           .map(i =>
-            (i.reward?.lati ? `${i.reward?.lati}Ls` : i.reward?.multiplier ? `${i.reward?.multiplier}x` : '').padEnd(7)
+            (i.reward?.lati ? `${i.reward?.lati}Ls` : i.reward?.multiplier ? `${i.reward?.multiplier}x` : '').padEnd(7),
           )
-          .join(' | ')
+          .join(' | '),
       );
       console.log('-'.repeat(columns * 10));
     }
@@ -111,108 +111,6 @@ function scratchesLeftText(scratchesLeft: number, format = false) {
   return scratchesLeft === 1
     ? `Atlicis ${boldStr}1${boldStr} skrāpējums`
     : `Atlikuši ${boldStr}${scratchesLeft}${boldStr} skrāpējumi`;
-}
-
-function lotoEmbed(
-  i: ButtonInteraction | ChatInputCommandInteraction,
-  itemKey: ItemKey,
-  lotoArrWon: LotoArray,
-  { colors }: LotoOptions,
-  totalWin: number,
-  scratchesLeft: number
-) {
-  const latiArr = lotoArrWon.filter(item => item.reward?.lati);
-  const multiplierArr = lotoArrWon.filter(item => item.reward?.multiplier);
-  const color = scratchesLeft ? commandColors.feniks : colors.find(({ lati }) => totalWin >= lati)!.color;
-
-  return embedTemplate({
-    i,
-    title: `Izmantot: ${itemString(itemKey, null, true)}`,
-    description: scratchesLeftText(scratchesLeft, true),
-    color,
-    fields: [
-      {
-        name: 'Atrastie lati:',
-        value: latiArr.length ? latiArr.map(item => item.reward?.emoji()).join(' + ') : '-',
-        inline: false,
-      },
-      {
-        name: 'Atrastie reizinātāji:',
-        value:
-          `${multiplierArr.length ? multiplierArr.map(item => item.reward?.emoji()).join(' + ') : '-'}\n\n` +
-          (scratchesLeft
-            ? `_Spied uz_ ${emoji('loto_question_mark')} _lai atklātu balvas_`
-            : `**KOPĒJAIS LAIMESTS: __${totalWin}__ lati**`),
-        inline: false,
-      },
-    ],
-  }).embeds;
-}
-
-function lotoComponents(
-  itemKey: ItemKey,
-  lotoArray: LotoArray,
-  { rows, columns }: LotoOptions,
-  scratchesLeft: number,
-  hasEnded = false,
-  lotoInInv = 0
-) {
-  const actionRows: ActionRowBuilder<ButtonBuilder>[] = [];
-
-  for (let row = 0; row < rows; row++) {
-    actionRows.push(
-      new ActionRowBuilder<ButtonBuilder>().addComponents(
-        Array.from({ length: columns }, (_, index) => {
-          const lotoArrIndex = row * columns + index;
-          const { reward, scratched } = lotoArray[lotoArrIndex];
-
-          const btnEmoji: ComponentEmojiResolvable =
-            hasEnded || scratched
-              ? reward
-                ? reward.emoji() //
-                : emoji('blank')
-              : emoji('loto_question_mark');
-
-          const btn = new ButtonBuilder()
-            .setCustomId(`${itemKey}-${lotoArrIndex}`)
-            .setStyle(scratched ? (reward ? ButtonStyle.Success : ButtonStyle.Danger) : ButtonStyle.Secondary)
-            .setEmoji(btnEmoji)
-            .setDisabled(hasEnded);
-
-          // temp
-          if ((hasEnded || scratched) && reward) {
-            // btn.setLabel(reward.lati ? `${reward.lati} lati` : `${reward.multiplier}x`);
-          }
-
-          return btn;
-        })
-      )
-    );
-  }
-
-  if (!hasEnded || (hasEnded && !lotoInInv)) {
-    actionRows.push(
-      new ActionRowBuilder<ButtonBuilder>().addComponents(
-        new ButtonBuilder()
-          .setCustomId('_')
-          .setStyle(ButtonStyle.Secondary)
-          .setLabel(scratchesLeftText(scratchesLeft))
-          .setDisabled(true)
-      )
-    );
-  } else if (lotoInInv) {
-    actionRows.push(
-      new ActionRowBuilder<ButtonBuilder>().addComponents(
-        new ButtonBuilder()
-          .setCustomId('loto_izmantot_velreiz')
-          .setStyle(ButtonStyle.Primary)
-          .setLabel(`Izmantot vēlreiz (${lotoInInv})`)
-          .setEmoji(itemList[itemKey].emoji() || '❓')
-      )
-    );
-  }
-
-  return actionRows;
 }
 
 function calcTotal(lotoArray: LotoArray) {
@@ -240,6 +138,104 @@ function calcTotal(lotoArray: LotoArray) {
 
 const TEST_SPINS = false;
 
+type State = {
+  itemKey: ItemKey;
+  totalWin: number;
+  lotoArray: LotoArray;
+  lotoArrayWon: LotoArray;
+  lotoOptions: LotoOptions;
+  scratchesLeft: number;
+  isActive: boolean;
+  lotoInInv: number;
+};
+
+function view(state: State, i: BaseInteraction) {
+  const { itemKey, totalWin, lotoArray, lotoArrayWon, scratchesLeft, lotoOptions, isActive, lotoInInv } = state;
+
+  const latiArr = lotoArrayWon.filter(item => item.reward?.lati);
+  const multiplierArr = lotoArrayWon.filter(item => item.reward?.multiplier);
+  const color = scratchesLeft ? commandColors.feniks : lotoOptions.colors.find(({ lati }) => totalWin >= lati)!.color;
+
+  const actionRows: ActionRowBuilder<ButtonBuilder>[] = [];
+
+  for (let row = 0; row < lotoOptions.rows; row++) {
+    actionRows.push(
+      new ActionRowBuilder<ButtonBuilder>().addComponents(
+        Array.from({ length: lotoOptions.columns }, (_, index) => {
+          const lotoArrIndex = row * lotoOptions.columns + index;
+          const { reward, scratched } = lotoArray[lotoArrIndex];
+
+          const btnEmoji: ComponentEmojiResolvable =
+            !isActive || scratched
+              ? reward
+                ? reward.emoji() //
+                : emoji('blank')
+              : emoji('loto_question_mark');
+
+          const btn = new ButtonBuilder()
+            .setCustomId(`${itemKey}-${lotoArrIndex}`)
+            .setStyle(scratched ? (reward ? ButtonStyle.Success : ButtonStyle.Danger) : ButtonStyle.Secondary)
+            .setEmoji(btnEmoji)
+            .setDisabled(!isActive);
+
+          // temp
+          if ((!isActive || scratched) && reward) {
+            // btn.setLabel(reward.lati ? `${reward.lati} lati` : `${reward.multiplier}x`);
+          }
+
+          return btn;
+        }),
+      ),
+    );
+  }
+
+  if (isActive || (!isActive && !lotoInInv)) {
+    actionRows.push(
+      new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder()
+          .setCustomId('_')
+          .setStyle(ButtonStyle.Secondary)
+          .setLabel(scratchesLeftText(scratchesLeft))
+          .setDisabled(true),
+      ),
+    );
+  } else if (lotoInInv) {
+    actionRows.push(
+      new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder()
+          .setCustomId('loto_izmantot_velreiz')
+          .setStyle(ButtonStyle.Primary)
+          .setLabel(`Izmantot vēlreiz (${lotoInInv})`)
+          .setEmoji(itemList[itemKey].emoji() || '❓'),
+      ),
+    );
+  }
+
+  return embedTemplate({
+    i,
+    title: `Izmantot: ${itemString(itemKey, null, true)}`,
+    description: scratchesLeftText(scratchesLeft, true),
+    color,
+    fields: [
+      {
+        name: 'Atrastie lati:',
+        value: latiArr.length ? latiArr.map(item => item.reward?.emoji()).join(' + ') : '-',
+        inline: false,
+      },
+      {
+        name: 'Atrastie reizinātāji:',
+        value:
+          `${multiplierArr.length ? multiplierArr.map(item => item.reward?.emoji()).join(' + ') : '-'}\n\n` +
+          (scratchesLeft
+            ? `_Spied uz_ ${emoji('loto_question_mark')} _lai atklātu balvas_`
+            : `**KOPĒJAIS LAIMESTS: __${totalWin}__ lati**`),
+        inline: false,
+      },
+    ],
+    components: actionRows,
+  });
+}
+
 export default function loto(itemKey: ItemKey, options: LotoOptions): UsableItemFunc {
   return () => ({
     custom: async i => {
@@ -255,80 +251,88 @@ export default function loto(itemKey: ItemKey, options: LotoOptions): UsableItem
       let user = await findUser(userId, guildId);
       if (!user) return intReply(i, errorEmbed);
 
-      const lotoArray = generateLotoArr(options);
+      const initialState: State = {
+        itemKey,
+        totalWin: 0,
+        lotoArray: generateLotoArr(options),
+        lotoArrayWon: [],
+        lotoOptions: options,
+        scratchesLeft: options.scratches,
+        isActive: true,
+        lotoInInv: 0,
+      };
+
       const buttonCount = options.rows * options.columns;
-      let scratchesLeft = options.scratches;
-      let latiAdded = false;
-      let lotoInInv = 0;
 
-      const msg = await intReply(i, {
-        content: '\u200b',
-        embeds: lotoEmbed(i, itemKey, [], options, 0, scratchesLeft),
-        components: lotoComponents(itemKey, lotoArray, options, scratchesLeft),
-        fetchReply: true,
-      });
-      if (!msg) return;
+      const dialogs = new Dialogs<State>(i, initialState, view, `izmantot_loto_${Date.now()}`, { time: 300000 });
 
-      buttonHandler(
-        i,
-        `izmantot`,
-        msg,
-        async int => {
-          const { customId } = int;
-          if (int.componentType !== ComponentType.Button) return;
+      if (!(await dialogs.start())) {
+        return intReply(i, errorEmbed);
+      }
 
-          if (customId === 'loto_izmantot_velreiz') {
-            if (scratchesLeft) return;
+      dialogs.onClick(async (int, state) => {
+        const { customId } = int;
+        if (int.componentType !== ComponentType.Button) return;
 
-            return {
-              end: true,
-              after: async () => {
-                // ahhh nepatīk šitais imports dritvai kociņ, lūdzu neesi atmiņas noplūde
-                const izmantotRun = await import('../../commands/economyCommands/izmantot/izmantotRun');
-                izmantotRun.default(int, itemKey, 0);
-              },
-            };
-          }
-
-          if (scratchesLeft <= 0) return;
-          const [btnItemKey, btnIndexStr] = customId.split('-');
-          const btnIndex = +btnIndexStr;
-
-          if (btnItemKey !== itemKey || isNaN(btnIndex) || btnIndex < 0 || btnIndex >= buttonCount) return;
-
-          const clickedItem = lotoArray[btnIndex];
-          if (!clickedItem || clickedItem.scratched) return;
-
-          clickedItem.scratched = true;
-          scratchesLeft--;
-
-          if (options.scratches - scratchesLeft === 1) {
-            await addItems(userId, guildId, { [itemKey]: -1 });
-          }
-
-          const hasEnded = scratchesLeft <= 0;
-
-          const { total, sorted } = calcTotal(lotoArray);
-
-          if (hasEnded && !latiAdded) {
-            latiAdded = true;
-            user = total ? await addLati(userId, guildId, total) : await findUser(userId, guildId);
-            if (user) {
-              lotoInInv = user.items.find(item => item.name === itemKey)?.amount || 0;
-            }
-          }
-
+        if (customId === 'loto_izmantot_velreiz' && !state.scratchesLeft) {
           return {
-            edit: {
-              embeds: lotoEmbed(int, itemKey, sorted, options, total, scratchesLeft),
-              components: lotoComponents(itemKey, lotoArray, options, scratchesLeft, hasEnded, lotoInInv),
+            end: true,
+            after: async () => {
+              // ahhh nepatīk šitais imports, lūdzu, neesi atmiņas noplūde
+              const izmantotRun = await import('../../commands/economyCommands/izmantot/izmantotRun');
+              izmantotRun.default(int, itemKey, 0);
             },
-            setInactive: hasEnded,
           };
-        },
-        60000,
-        true
-      );
+        }
+
+        if (state.scratchesLeft <= 0) return;
+
+        const [btnItemKey, btnIndexStr] = customId.split('-');
+        const btnIndex = +btnIndexStr;
+
+        if (btnItemKey !== itemKey || isNaN(btnIndex) || btnIndex < 0 || btnIndex >= buttonCount) return;
+
+        const clickedItem = state.lotoArray[btnIndex];
+        if (!clickedItem || clickedItem.scratched) return;
+
+        if (options.scratches === state.scratchesLeft) {
+          const user = await findUser(userId, guildId);
+          if (!user) return { error: true };
+
+          const item = user.items.find(item => item.name === itemKey);
+          const hasItem = item && item.amount > 0;
+
+          if (!hasItem) {
+            intReply(int, ephemeralReply(`Tavā inventārā nav **${itemString(itemKey)}**. Tu mēģini krāpties?`));
+            return { end: true };
+          }
+
+          const res = await addItems(userId, guildId, { [itemKey]: -1 });
+          if (!res) return { error: true };
+        }
+
+        clickedItem.scratched = true;
+        state.scratchesLeft--;
+
+        state.isActive = state.scratchesLeft > 0;
+
+        const { total, sorted } = calcTotal(state.lotoArray);
+
+        state.lotoArrayWon = sorted;
+        state.totalWin = total;
+
+        if (!state.isActive) {
+          user = total > 0 ? await addLati(userId, guildId, total) : await findUser(userId, guildId);
+          if (!user) return { error: true };
+
+          state.lotoInInv = user.items.find(item => item.name === itemKey)?.amount || 0;
+        }
+
+        return {
+          update: true,
+          setInactive: !state.isActive,
+        };
+      });
     },
   });
 }
