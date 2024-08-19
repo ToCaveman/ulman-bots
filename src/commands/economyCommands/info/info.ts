@@ -121,7 +121,7 @@ const info: Command = {
     }
 
     // kurā versijā manta pievienota
-    fields[0].value += `\n\nPievienots versijā **${itemObj.addedInVersion}** (${updatesList[itemObj.addedInVersion].date})`;
+    fields[0].value += `\n\nPievienots versijā **${itemObj.addedInVersion}** (${updatesList[itemObj.addedInVersion]().date})`;
 
     // loto biļešu info
     if (itemObj.categories.includes(ItemCategory.LOTO) && 'lotoOptions' in itemObj) {

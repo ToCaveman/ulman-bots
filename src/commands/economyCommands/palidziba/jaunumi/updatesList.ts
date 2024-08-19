@@ -3,7 +3,7 @@ import itemString from '../../../../embeds/helpers/itemString';
 import itemList from '../../../../items/itemList';
 
 const updatesList = {
-  '4.0': {
+  '4.0': () => ({
     date: '14.10.2022',
     description:
       'Šis ir vislielākais UlmaņBota atjauninājums līdz šim, tika pārrakstīts viss bota kods no nulles, ' +
@@ -58,8 +58,8 @@ const updatesList = {
           '_**... ā un slīpsvītru (/) komandas protams :^)**_',
       },
     ],
-  },
-  '4.1': {
+  }),
+  '4.1': () => ({
     date: '29.10.2022',
     description: '',
     fields: [
@@ -111,8 +111,8 @@ const updatesList = {
         inline: true,
       },
     ],
-  },
-  '4.2': {
+  }),
+  '4.2': () => ({
     date: '01.12.2022',
     description: '',
     fields: [
@@ -154,15 +154,15 @@ const updatesList = {
           '• Miruša kaķa vērtība ir 0 lati :(',
       },
     ],
-  },
-  '4.3': {
+  }),
+  '4.3': () => ({
     date: '???',
     description: '',
     fields: [],
-  },
+  }),
 } satisfies Record<
   string,
-  {
+  () => {
     date: string;
     description: string;
     fields: APIEmbedField[];

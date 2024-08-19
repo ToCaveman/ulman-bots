@@ -46,7 +46,7 @@ export default function embedTemplate(options: EmbedTemplateOptions): Interactio
         image: options.image ? { url: options.image } : undefined,
         footer: {
           icon_url: 'https://i.postimg.cc/Hnp1BG37/ulmanis-footer1.png',
-          text: `Versija: ${ULMANBOTA_VERSIJA} (${updatesList[ULMANBOTA_VERSIJA].date})  |  Veidotājs: @deimoss`,
+          text: `Versija: ${ULMANBOTA_VERSIJA} (${updatesList[ULMANBOTA_VERSIJA]().date})  |  Veidotājs: @deimoss`,
         },
         thumbnail: options.thumbnail ? { url: options.thumbnail } : undefined,
       },
