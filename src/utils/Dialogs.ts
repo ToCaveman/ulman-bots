@@ -23,7 +23,7 @@ type InteractionType =
   | ModalSubmitInteraction;
 
 // objekts, ko atgriež onClick handleris
-type OnClickCallbackReturn = {
+export type DialogsOnClickCallbackReturn = {
   // atbildēt ar kļūdas paziņojumu
   error?: true;
 
@@ -125,7 +125,7 @@ export class Dialogs<T extends { [key: string]: any }> {
     callback: (
       componentInteraction: ButtonInteraction | StringSelectMenuInteraction,
       state: T,
-    ) => Promise<OnClickCallbackReturn | void>,
+    ) => Promise<DialogsOnClickCallbackReturn | void>,
   ) {
     if (!this.primaryMsg) {
       console.log(chalk.red('Kļūda: ') + 'Tu neesi palaidis start() metodi dialogam');
