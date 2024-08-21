@@ -1,4 +1,4 @@
-import { bold, ComponentType, EmbedBuilder, underline } from 'discord.js';
+import { bold, ComponentType, EmbedBuilder } from 'discord.js';
 import addItems from '../../../economy/addItems';
 import addLati from '../../../economy/addLati';
 import addSpecialItems from '../../../economy/addSpecialItems';
@@ -6,7 +6,6 @@ import addXp, { AddXpReturn } from '../../../economy/addXp';
 import findUser from '../../../economy/findUser';
 import removeItemsById from '../../../economy/removeItemsById';
 import setFishing from '../../../economy/setFishing';
-import buttonHandler from '../../../embeds/buttonHandler';
 import commandColors from '../../../embeds/commandColors';
 import ephemeralReply from '../../../embeds/ephemeralReply';
 import errorEmbed from '../../../embeds/errorEmbed';
