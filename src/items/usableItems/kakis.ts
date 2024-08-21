@@ -30,6 +30,7 @@ import countFreeInvSlots from '../helpers/countFreeInvSlots';
 import itemList, { ItemKey } from '../itemList';
 import { Dialogs } from '../../utils/Dialogs';
 import mongoTransaction from '../../utils/mongoTransaction';
+import { useDifferentItemHandler, useDifferentItemSelectMenu } from '../../utils/useDifferentItem';
 
 export const kakisFedState: {
   time: number;
@@ -96,6 +97,7 @@ function deadTime(createdAt: number, fedUntil: number) {
 
 type State = {
   user: UserProfile;
+  itemId: string;
   attributes: ItemAttributes;
   currTime: number;
   selectedFood: ItemKey | null;
@@ -183,13 +185,17 @@ function view(state: State, i: BaseInteraction) {
       .setCustomId(hat ? 'cat_remove_hat' : 'cat_add_hat')
       .setLabel(hat ? 'Novilkt cepuri' : 'Uzvilkt cepuri')
       .setEmoji(itemList.salaveca_cepure.emoji() || '❓')
-      .setStyle(ButtonStyle.Primary)
+      .setStyle(ButtonStyle.Primary);
 
     if (buttonRow) buttonRow.addComponents(hatBtn);
     else buttonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(hatBtn);
   }
 
   if (buttonRow) components.push(buttonRow);
+
+  if (state.user.specialItems.filter(({ name }) => name === 'kakis').length > 1) {
+    components.push(useDifferentItemSelectMenu(state.user, 'kakis', state.itemId));
+  }
 
   return embedTemplate({
     i,
@@ -274,6 +280,7 @@ const kakis: UsableItemFunc = async (userId, guildId, _, specialItem) => ({
 
     const initialState: State = {
       user,
+      itemId: specialItem!._id!,
       attributes: specialItem!.attributes,
       currTime: Date.now(),
       selectedFood: null,
@@ -300,6 +307,10 @@ const kakis: UsableItemFunc = async (userId, guildId, _, specialItem) => ({
       state.user = user;
       state.currTime = Date.now();
       state.attributes = catInInv.attributes;
+
+      if (customId === 'use_different' && componentType === ComponentType.StringSelect) {
+        return useDifferentItemHandler(user, 'kakis', int);
+      }
 
       if (customId === 'feed_cat_select' && componentType === ComponentType.StringSelect) {
         state.selectedFood = user.items.find(({ name }) => name === int.values[0]) ? int.values[0] : null;
@@ -380,18 +391,18 @@ const kakis: UsableItemFunc = async (userId, guildId, _, specialItem) => ({
         try {
           const modalInt = await int.awaitModalSubmit({
             filter: i => i.customId == modalId,
-            time: 60_000,
+            time: 50000,
           });
 
           const res = await handleCatModal(modalInt, state.currTime);
           if (!res) {
-            return { doNothing: true };
+            return {};
           }
 
           state.user = res.user;
           state.attributes = res.newItem.attributes;
         } catch (_) {
-          return { doNothing: true };
+          return {};
         }
 
         state.currTime = Date.now();
@@ -430,12 +441,12 @@ const kakis: UsableItemFunc = async (userId, guildId, _, specialItem) => ({
       if (customId === 'cat_remove_hat') {
         if (catInInv.attributes.hat !== 'salaveca_cepure') {
           intReply(int, ephemeralReply('Kļūda, šim kaķim nav uzvilkta cepure'));
-          return { doNothing: true };
+          return {};
         }
 
         if (!countFreeInvSlots(user)) {
           intReply(int, ephemeralReply('Tu nevari kaķim novilkt cepuri, jo tev nav brīvu vietu inventārā'));
-          return { doNothing: true };
+          return {};
         }
 
         const { ok, values } = await mongoTransaction(session => [
