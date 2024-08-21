@@ -199,6 +199,7 @@ function view(state: State, i: BaseInteraction) {
 
   return embedTemplate({
     i,
+    content: '\u200b',
     color: commandColors.izmantot,
     title: `Izmantot: ${itemString(itemList.kakis, null, true, state.attributes)} ${isDead ? '(miris)' : ''}`,
     description: isDead
