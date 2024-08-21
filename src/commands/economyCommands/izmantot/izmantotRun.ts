@@ -1,10 +1,13 @@
 import {
   ActionRowBuilder,
+  BaseInteraction,
   ButtonBuilder,
   ButtonInteraction,
   ButtonStyle,
   ChatInputCommandInteraction,
+  ColorResolvable,
   ComponentType,
+  EmbedField,
 } from 'discord.js';
 import findUser from '../../../economy/findUser';
 import errorEmbed from '../../../embeds/errorEmbed';
@@ -14,10 +17,38 @@ import addItems from '../../../economy/addItems';
 import embedTemplate from '../../../embeds/embedTemplate';
 import ItemString from '../../../embeds/helpers/itemString';
 import itemList from '../../../items/itemList';
-import buttonHandler from '../../../embeds/buttonHandler';
 import izmantotRunSpecial from './izmantotRunSpecial';
 import { UsableItem } from '../../../interfaces/Item';
 import intReply from '../../../utils/intReply';
+import { Dialogs } from '../../../utils/Dialogs';
+
+type State = {
+  color: ColorResolvable;
+  itemToUse: UsableItem;
+  description: string;
+  fields: EmbedField[];
+  itemsToUseLeft: number;
+};
+
+function view(state: State, i: BaseInteraction) {
+  const componentRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setCustomId('izmantot_velreiz')
+      .setLabel(`Izmantot vēlreiz (${state.itemsToUseLeft})`)
+      .setStyle(ButtonStyle.Primary)
+      .setEmoji(state.itemToUse.emoji() || '❓'),
+  );
+
+  return embedTemplate({
+    i,
+    color: state.color,
+    title: `Izmantot: ${ItemString(state.itemToUse, null, true)}`,
+    description: state.description,
+    fields: state.fields,
+    components:
+      state.itemsToUseLeft && 'removedOnUse' in state.itemToUse && state.itemToUse.removedOnUse ? [componentRow] : [],
+  });
+}
 
 export default async function izmantotRun(
   i: ChatInputCommandInteraction | ButtonInteraction,
@@ -58,64 +89,26 @@ export default async function izmantotRun(
   if ('error' in res) return intReply(i, errorEmbed);
   if ('custom' in res) return res.custom(i, embedColor);
 
-  const resFields = res.fields || [];
-
-  const componentRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
-    new ButtonBuilder()
-      .setCustomId('izmantot_velreiz')
-      .setLabel(`Izmantot vēlreiz (${itemsToUseLeft})`)
-      .setStyle(ButtonStyle.Primary)
-      .setEmoji(itemToUse.emoji() || '❓'),
-  );
-
-  const replyMessage = embedTemplate({
-    i,
-    color: res.color || embedColor,
-    title: `Izmantot: ${ItemString(itemToUse, null, true)}`,
+  const initialState: State = {
+    color: (res.color || embedColor) as ColorResolvable,
+    itemToUse: itemToUse as UsableItem,
     description: res.text,
-    fields: resFields,
-    components: itemsToUseLeft && 'removedOnUse' in itemToUse && itemToUse.removedOnUse ? [componentRow] : [],
+    fields: res.fields || [],
+    itemsToUseLeft,
+  };
+
+  const dialogs = new Dialogs(i, initialState, view, 'izmantot');
+
+  if (!(await dialogs.start())) {
+    return intReply(i, errorEmbed);
+  }
+
+  if (!itemsToUseLeft || ('removedOnUse' in itemToUse && !itemToUse.removedOnUse)) return;
+
+  dialogs.onClick(async int => {
+    if (int.customId === 'izmantot_velreiz' && int.componentType === ComponentType.Button) {
+      izmantotRun(int, itemToUseKey, embedColor);
+      return { end: true };
+    }
   });
-
-  const msg = await intReply(i, replyMessage);
-
-  if (!msg || !itemsToUseLeft || ('removedOnUse' in itemToUse && !itemToUse.removedOnUse)) return;
-
-  buttonHandler(
-    i,
-    'izmantot',
-    msg,
-    async int => {
-      if (int.customId === 'izmantot_velreiz') {
-        if (int.componentType !== ComponentType.Button) return;
-
-        let buttonStyle = ButtonStyle.Success;
-
-        const userBeforeUse = await findUser(userId, guildId);
-        if (userBeforeUse) {
-          if (!userBeforeUse.items.find(item => item.name === itemToUseKey)) {
-            buttonStyle = ButtonStyle.Danger;
-          }
-        }
-
-        componentRow.setComponents(
-          new ButtonBuilder()
-            .setCustomId('izmantot_velreiz')
-            .setLabel(`Izmantot vēlreiz (${itemsToUseLeft})`)
-            .setStyle(buttonStyle)
-            .setEmoji(itemToUse.emoji() || '❓')
-            .setDisabled(true),
-        );
-
-        return {
-          end: true,
-          edit: { components: [componentRow] },
-          after: () => izmantotRun(int, itemToUseKey, embedColor),
-        };
-      }
-
-      return;
-    },
-    10000,
-  );
 }
