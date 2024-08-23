@@ -1,5 +1,6 @@
 import {
   ActionRowBuilder,
+  BaseInteraction,
   ButtonBuilder,
   ButtonInteraction,
   ButtonStyle,
@@ -8,7 +9,6 @@ import {
   StringSelectMenuBuilder,
 } from 'discord.js';
 import findUser from '../../../economy/findUser';
-import buttonHandler from '../../../embeds/buttonHandler';
 import embedTemplate from '../../../embeds/embedTemplate';
 import ephemeralReply from '../../../embeds/ephemeralReply';
 import errorEmbed from '../../../embeds/errorEmbed';
@@ -20,62 +20,7 @@ import { ItemAttributes, SpecialItemInProfile } from '../../../interfaces/UserPr
 import itemList, { ItemKey } from '../../../items/itemList';
 import intReply from '../../../utils/intReply';
 import { attributeItemSort } from '../inventars/inventars';
-
-function makeComponents(
-  itemsInInv: SpecialItemInProfile[],
-  itemObj: AttributeItem<ItemAttributes>,
-  selectedId?: string,
-) {
-  const buttonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
-    new ButtonBuilder()
-      .setCustomId('izmantot_special_confirm')
-      .setDisabled(!selectedId)
-      .setLabel('Izmantot')
-      .setStyle(selectedId ? ButtonStyle.Primary : ButtonStyle.Secondary),
-  );
-
-  if (itemObj.useMany) {
-    const usableItems = itemsInInv.filter(({ attributes }) => itemObj.useMany!.filter(attributes));
-
-    if (usableItems.length) {
-      buttonRow.addComponents(
-        new ButtonBuilder()
-          .setCustomId('izmantot_special_many')
-          .setLabel(`Izmantot visus (${usableItems.length}/${itemsInInv.length})`)
-          .setStyle(ButtonStyle.Primary),
-      );
-    }
-  }
-
-  return [
-    new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-      new StringSelectMenuBuilder()
-        .setCustomId('izmantot_special_select')
-        .setPlaceholder('Izvēlies kuru izmantot')
-        .setOptions(
-          itemsInInv
-            .slice(0, 25)
-            .sort((a, b) => {
-              const valueA = itemObj.customValue ? itemObj.customValue(a.attributes) : itemObj.value;
-              const valueB = itemObj.customValue ? itemObj.customValue(b.attributes) : itemObj.value;
-              if (valueA === valueB) {
-                return attributeItemSort(a.attributes, b.attributes, itemObj.sortBy);
-              }
-
-              return valueB - valueA;
-            })
-            .map(item => ({
-              label: itemStringCustom(itemObj, item.attributes?.customName),
-              description: displayAttributes(item, true),
-              value: item._id!,
-              emoji: (itemObj.customEmoji ? itemObj.customEmoji(item.attributes) : itemObj.emoji()) || '❓',
-              default: selectedId === item._id,
-            })),
-        ),
-    ),
-    buttonRow,
-  ];
-}
+import { Dialogs } from '../../../utils/Dialogs';
 
 function makeEmbed(
   i: ChatInputCommandInteraction | ButtonInteraction,
@@ -93,6 +38,76 @@ function makeEmbed(
   });
 }
 
+type State = {
+  itemsInInv: SpecialItemInProfile[];
+  itemObj: AttributeItem<ItemAttributes>;
+  selectedId: string | null;
+  embedColor: number;
+};
+
+function view(state: State, i: BaseInteraction) {
+  const buttonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setCustomId('izmantot_special_confirm')
+      .setDisabled(!state.selectedId)
+      .setLabel('Izmantot')
+      .setStyle(state.selectedId ? ButtonStyle.Primary : ButtonStyle.Secondary),
+  );
+
+  if (state.itemObj.useMany) {
+    const usableItems = state.itemsInInv.filter(({ attributes }) => state.itemObj.useMany!.filter(attributes));
+
+    if (usableItems.length) {
+      buttonRow.addComponents(
+        new ButtonBuilder()
+          .setCustomId('izmantot_special_many')
+          .setLabel(`Izmantot visus (${usableItems.length}/${state.itemsInInv.length})`)
+          .setStyle(ButtonStyle.Primary),
+      );
+    }
+  }
+
+  const components = [
+    new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+      new StringSelectMenuBuilder()
+        .setCustomId('izmantot_special_select')
+        .setPlaceholder('Izvēlies kuru izmantot')
+        .setOptions(
+          state.itemsInInv
+            .slice(0, 25)
+            .sort((a, b) => {
+              const valueA = state.itemObj.customValue ? state.itemObj.customValue(a.attributes) : state.itemObj.value;
+              const valueB = state.itemObj.customValue ? state.itemObj.customValue(b.attributes) : state.itemObj.value;
+              if (valueA === valueB) {
+                return attributeItemSort(a.attributes, b.attributes, state.itemObj.sortBy);
+              }
+
+              return valueB - valueA;
+            })
+            .map(item => ({
+              label: itemStringCustom(state.itemObj, item.attributes?.customName),
+              description: displayAttributes(item, true),
+              value: item._id!,
+              emoji:
+                (state.itemObj.customEmoji ? state.itemObj.customEmoji(item.attributes) : state.itemObj.emoji()) ||
+                '❓',
+              default: state.selectedId === item._id,
+            })),
+        ),
+    ),
+    buttonRow,
+  ];
+
+  return embedTemplate({
+    i,
+    color: state.embedColor,
+    description:
+      `Tavā inventārā ir **${itemString(state.itemObj, state.itemsInInv.length)}**\n` +
+      `No saraksta izvēlies kuru tu gribi izmantot`,
+    components,
+  });
+}
+
 export default async function izmantotRunSpecial(
   i: ChatInputCommandInteraction | ButtonInteraction,
   itemKey: ItemKey,
@@ -103,7 +118,6 @@ export default async function izmantotRunSpecial(
   const guildId = i.guildId!;
 
   const itemObj = itemList[itemKey] as AttributeItem<ItemAttributes> | NotSellableItem;
-  let selectedItemId = '';
 
   if (itemsInInv.length === 1) {
     const selectedItem = itemsInInv[0];
@@ -113,74 +127,64 @@ export default async function izmantotRunSpecial(
     return intReply(i, makeEmbed(i, itemObj, selectedItem, useRes, embedColor));
   }
 
-  const msg = await intReply(
-    i,
-    embedTemplate({
-      i,
-      color: embedColor,
-      description:
-        `Tavā inventārā ir **${itemString(itemObj, itemsInInv.length)}**\n` +
-        `No saraksta izvēlies kuru tu gribi izmantot`,
-      components: makeComponents(itemsInInv, itemObj),
-    }),
-  );
+  const initialState: State = {
+    itemsInInv,
+    itemObj,
+    selectedId: null,
+    embedColor,
+  };
 
-  if (!msg) return;
+  const dialogs = new Dialogs(i, initialState, view, 'izmantot', { time: 60000 });
 
-  buttonHandler(
-    i,
-    'izmantot',
-    msg,
-    async int => {
-      const { customId } = int;
+  if (!(await dialogs.start())) {
+    return intReply(i, errorEmbed);
+  }
 
-      if (customId === 'izmantot_special_select') {
-        if (int.componentType !== ComponentType.StringSelect) return;
-        selectedItemId = int.values[0]!;
-        return {
-          edit: {
-            components: makeComponents(itemsInInv, itemObj, selectedItemId),
-          },
-        };
+  dialogs.onClick(async (int, state) => {
+    const { customId } = int;
+
+    if (customId === 'izmantot_special_select') {
+      if (int.componentType !== ComponentType.StringSelect) return;
+      state.selectedId = int.values[0]!;
+      return { update: true };
+    }
+
+    if (int.componentType !== ComponentType.Button) return;
+
+    if (customId === 'izmantot_special_confirm') {
+      const user = await findUser(userId, guildId);
+      if (!user) return { error: true };
+
+      const selectedItem = user.specialItems.find(item => item._id === state.selectedId);
+
+      if (!selectedItem) {
+        state.selectedId = null;
+        state.itemsInInv = user.specialItems.filter(item => item.name === itemKey);
+
+        intReply(int, ephemeralReply('Tavs inventāra saturs ir mainījies, šī manta vairs nav tavā inventārā'));
+        return { edit: true };
       }
 
-      if (int.componentType !== ComponentType.Button) return;
+      const useRes = await itemObj.use(userId, guildId, itemKey, selectedItem);
 
-      if (customId === 'izmantot_special_confirm') {
-        const user = await findUser(userId, guildId);
-        if (!user) return { error: true };
+      return {
+        end: true,
+        after: () => {
+          if ('error' in useRes) return intReply(int, errorEmbed);
+          if ('custom' in useRes) return useRes.custom(int, embedColor);
 
-        const selectedItem = user.specialItems.find(item => item._id === selectedItemId);
-        if (!selectedItem) {
-          return {
-            after: () => {
-              intReply(int, ephemeralReply('Tavs inventāra saturs ir mainījies, šī manta nav tavā inventārā'));
-            },
-          };
-        }
+          intReply(int, makeEmbed(i, itemObj, selectedItem, useRes, embedColor));
+        },
+      };
+    }
 
-        const useRes = await itemObj.use(userId, guildId, itemKey, selectedItem);
+    if (customId === 'izmantot_special_many') {
+      if (!itemObj.useMany) return;
 
-        return {
-          end: true,
-          after: () => {
-            if ('error' in useRes) return intReply(int, errorEmbed);
-            if ('custom' in useRes) return useRes.custom(int, embedColor);
-
-            intReply(int, makeEmbed(i, itemObj, selectedItem, useRes, embedColor));
-          },
-        };
-      }
-
-      if (customId === 'izmantot_special_many') {
-        if (!itemObj.useMany) return;
-
-        return {
-          end: true,
-          after: () => itemObj.useMany!.runFunc(int),
-        };
-      }
-    },
-    60000,
-  );
+      return {
+        end: true,
+        after: () => itemObj.useMany!.runFunc(int),
+      };
+    }
+  });
 }
