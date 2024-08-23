@@ -127,9 +127,9 @@ const vakances: Command = {
       currentJob = user.jobPosition;
     }
 
-    const defaultState: State = { user, chosenJob: '', currentJob };
+    const initialState: State = { user, chosenJob: '', currentJob };
 
-    const dialogs = new Dialogs(i, defaultState, view, 'vakances', { time: 30000 });
+    const dialogs = new Dialogs(i, initialState, view, 'vakances', { time: 30000 });
 
     if (!(await dialogs.start())) {
       return intReply(i, errorEmbed);

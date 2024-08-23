@@ -166,7 +166,7 @@ const veikals: Command = {
       .sort((a, b) => b[1].value - a[1].value)
       .map(([key, itemObj]) => ({ key, itemObj, ...getItemPrice(key, discounts) }));
 
-    const defaultState: State = {
+    const initialState: State = {
       user,
       shopItems,
       chosenItem: '',
@@ -175,7 +175,7 @@ const veikals: Command = {
       timeUntilReset: new Date().setHours(24, 0, 0, 0) - Date.now(),
     };
 
-    const dialogs = new Dialogs(i, defaultState, view, 'veikals', { time: 60000 });
+    const dialogs = new Dialogs(i, initialState, view, 'veikals', { time: 60000 });
 
     if (!(await dialogs.start())) {
       return intReply(i, errorEmbed);

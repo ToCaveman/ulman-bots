@@ -257,7 +257,7 @@ const gazes_plits: UsableItemFunc = async (userId, guildId, _, specialItem) => {
         }
       });
 
-      const defaultState: State = {
+      const initialState: State = {
         user,
         selectedMenu: null,
         boil: {
@@ -268,7 +268,7 @@ const gazes_plits: UsableItemFunc = async (userId, guildId, _, specialItem) => {
         },
       };
 
-      const dialogs = new Dialogs(i, defaultState, view, 'izmantot_gazes_plits', { time: 60000 });
+      const dialogs = new Dialogs(i, initialState, view, 'izmantot_gazes_plits', { time: 60000 });
 
       if (!(await dialogs.start())) {
         return intReply(i, errorEmbed);

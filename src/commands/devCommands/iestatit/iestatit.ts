@@ -31,12 +31,12 @@ const iestatit: Command = {
     description: 'Kruķīt lietotāja īpašības (testēšanai)',
   },
   async run(i) {
-    const defaultState: State = {
+    const initialState: State = {
       text: 'noklusējuma',
       count: 0,
     };
 
-    const dialogs = new Dialogs(i, defaultState, view, 'iestatit');
+    const dialogs = new Dialogs(i, initialState, view, 'iestatit');
 
     if (!(await dialogs.start())) {
       return intReply(i, errorEmbed);

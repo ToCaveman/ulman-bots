@@ -123,7 +123,7 @@ export default async function feniksRun(
     .sort((a, b) => itemList[b.name].value - itemList[a.name].value)
     .map(({ name, amount }) => [name, amount]);
 
-  const defaultState: FeniksState = {
+  const initialState: FeniksState = {
     likme,
     likmeLati,
     spinCount: DEFAULT_EMOJI_COUNT,
@@ -138,7 +138,7 @@ export default async function feniksRun(
     isSpinning: true,
   };
 
-  const dialogs = new Dialogs(i, defaultState, feniksView, 'feniks', { time: 20000, isActive: true });
+  const dialogs = new Dialogs(i, initialState, feniksView, 'feniks', { time: 20000, isActive: true });
 
   if (!(await dialogs.start())) {
     return intReply(i, errorEmbed);
