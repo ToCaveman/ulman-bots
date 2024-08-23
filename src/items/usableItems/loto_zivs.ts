@@ -1,10 +1,4 @@
-import {
-  ActionRowBuilder,
-  ButtonInteraction,
-  ChatInputCommandInteraction,
-  ComponentType,
-  StringSelectMenuBuilder,
-} from 'discord.js';
+import { ActionRowBuilder, BaseInteraction, ComponentType, StringSelectMenuBuilder } from 'discord.js';
 import addItems from '../../economy/addItems';
 import findUser from '../../economy/findUser';
 import removeItemsById from '../../economy/removeItemsById';
@@ -18,11 +12,11 @@ import intReply from '../../utils/intReply';
 import chance, { ChanceObj, ChanceRecord } from '../helpers/chance';
 import countFreeInvSlots from '../helpers/countFreeInvSlots';
 import itemList, { ItemKey } from '../itemList';
-import { SpecialItemInProfile } from '../../interfaces/UserProfile';
-import { displayAttributes } from '../../embeds/helpers/displayAttributes';
-import buttonHandler from '../../embeds/buttonHandler';
-import capitalizeFirst from '../../embeds/helpers/capitalizeFirst';
+import UserProfile from '../../interfaces/UserProfile';
 import emoji from '../../utils/emoji';
+import mongoTransaction from '../../utils/mongoTransaction';
+import { Dialogs } from '../../utils/Dialogs';
+import { useDifferentItemHandler, useDifferentItemSelectMenu } from '../../utils/useDifferentItem';
 
 const fishCountChance: ChanceRecord = {
   3: { chance: '*' }, // 0.25
@@ -46,77 +40,58 @@ const lotoFishChanceObj: Record<ItemKey, ChanceObj> = {
   divaina_zivs: { chance: 0.1 },
 };
 
-function lotoZivsEmbed(
-  i: ChatInputCommandInteraction | ButtonInteraction,
-  wonFishArr: ItemKey[],
-  wonFishObj: Record<ItemKey, number>,
-  spinning = false,
-) {
+type State = {
+  user: UserProfile;
+  itemId: string;
+  wonFishArr: ItemKey[];
+  wonFishObj: Record<ItemKey, number>;
+  isSpinning: boolean;
+};
+
+function view(state: State, i: BaseInteraction) {
   const emptyEmoji = emoji('blank');
   const arrow_1_left = emoji('icon_arrow_1_left');
   const arrow_1_right = emoji('icon_arrow_1_right');
   const arrow_2_left = emoji('icon_arrow_2_left');
   const arrow_2_right = emoji('icon_arrow_2_right');
 
+  const components: ActionRowBuilder<StringSelectMenuBuilder>[] = [];
+
+  if (!state.isSpinning && state.user.specialItems.filter(({ name }) => name === 'loto_zivs').length) {
+    components.push(useDifferentItemSelectMenu(state.user, 'loto_zivs', state.itemId));
+  }
+
   return embedTemplate({
     i,
-    color: spinning ? commandColors.feniks : 0xf080ff,
-    title: `Izmantot: ${itemString(itemList.loto_zivs, null, true)} (satur ${wonFishArr.length} zivis)`,
+    color: state.isSpinning ? commandColors.feniks : 0xf080ff,
+    title: `Izmantot: ${itemString(itemList.loto_zivs, null, true)} (satur ${state.wonFishArr.length} zivis)`,
     description:
-      (spinning ? arrow_1_right : arrow_2_right) +
+      (state.isSpinning ? arrow_1_right : arrow_2_right) +
       emptyEmoji +
-      (spinning
-        ? Array(wonFishArr.length).fill(emoji('icon_loto_zivs_spin'))
-        : wonFishArr.map(key => {
-            return itemList[key].emoji();
-          })
+      (state.isSpinning
+        ? Array(state.wonFishArr.length).fill(emoji('icon_loto_zivs_spin'))
+        : state.wonFishArr.map(key => itemList[key].emoji())
       ).join(' ') +
       emptyEmoji +
-      (spinning ? arrow_1_left : arrow_2_left),
-    fields: spinning
+      (state.isSpinning ? arrow_1_left : arrow_2_left),
+    fields: state.isSpinning
       ? []
       : [
           {
             name: 'Tu laimēji:',
-            value: Object.entries(wonFishObj)
+            value: Object.entries(state.wonFishObj)
               .map(([key, amount]) => itemString(itemList[key], amount, true))
               .join('\n'),
             inline: true,
           },
         ],
-  }).embeds!;
-}
-
-function lotoZivsComponents(lotoZivis: SpecialItemInProfile[], disabled = false, selectedId = '') {
-  if (!lotoZivis.length) return [];
-
-  const itemObj = itemList.loto_zivs;
-
-  const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-    new StringSelectMenuBuilder()
-      .setCustomId('loto_zivs_izmantot_velreiz_select')
-      .setPlaceholder('Izmantot vēlreiz')
-      .setDisabled(disabled)
-      .setOptions(
-        lotoZivis
-          .slice(0, 25)
-          .sort((a, b) => b.attributes.holdsFishCount! - a.attributes.holdsFishCount!)
-          .map(item => ({
-            label: capitalizeFirst(itemObj.nameNomVsk),
-            description: displayAttributes(item, true),
-            emoji: itemObj.emoji() || '❓',
-            value: item._id!,
-            default: selectedId === item._id,
-          })),
-      ),
-  );
-
-  return [row];
+    components,
+  });
 }
 
 const loto_zivs: UsableItemFunc = (userId, guildId, _, specialItem) => {
   return {
-    custom: async (i, color) => {
+    custom: async i => {
       const holdsFishCount = specialItem!.attributes.holdsFishCount!;
 
       const user = await findUser(userId, guildId);
@@ -143,72 +118,47 @@ const loto_zivs: UsableItemFunc = (userId, guildId, _, specialItem) => {
         wonFishObj[key] = wonFishObj[key] ? wonFishObj[key] + 1 : 1;
       }
 
-      await addItems(userId, guildId, { ...wonFishObj });
-      const userNew = await removeItemsById(userId, guildId, [specialItem!._id!]);
-      if (!userNew) return intReply(i, errorEmbed);
+      const { ok, values } = await mongoTransaction(session => [
+        () => addItems(userId, guildId, { ...wonFishObj }, session),
+        () => removeItemsById(userId, guildId, [specialItem!._id!], session),
+      ]);
 
-      const fishInInv = userNew.specialItems.filter(item => item.name === 'loto_zivs');
+      if (!ok) return intReply(i, errorEmbed);
 
-      const msg = await intReply(i, {
-        embeds: lotoZivsEmbed(i, wonFishArr, wonFishObj, true),
-        components: lotoZivsComponents(fishInInv, true),
-        fetchReply: true,
-      });
+      const userNew = values[1];
 
-      let isSpinning = true;
+      const initialState: State = {
+        user: userNew,
+        itemId: specialItem!._id!,
+        wonFishArr,
+        wonFishObj,
+        isSpinning: true,
+      };
 
-      setTimeout(() => {
-        isSpinning = false;
-        i.editReply({
-          embeds: lotoZivsEmbed(i, wonFishArr, wonFishObj),
-          components: lotoZivsComponents(fishInInv),
-        }).catch(_ => _);
+      const dialogs = new Dialogs(i, initialState, view, 'izmantot', { time: 30000, isActive: true });
+
+      if (!(await dialogs.start())) {
+        return intReply(i, errorEmbed);
+      }
+
+      setTimeout(async () => {
+        dialogs.state.isSpinning = false;
+        await dialogs.edit();
+        dialogs.setActive(false);
       }, 1000);
 
-      if (!msg || !fishInInv.length) return;
+      dialogs.onClick(async (int, state) => {
+        if (state.isSpinning) return {};
 
-      buttonHandler(
-        i,
-        'izmantot_loto_zivs',
-        msg,
-        async int => {
-          const { customId, componentType } = int;
+        const user = await findUser(userId, guildId);
+        if (!user) return { error: true };
 
-          if (isSpinning || componentType !== ComponentType.StringSelect) return;
+        state.user = user;
 
-          const user = await findUser(userId, guildId);
-          if (!user) return { error: true };
-
-          if (customId === 'loto_zivs_izmantot_velreiz_select') {
-            const itemId = int.values[0];
-            const itemInInv = user.specialItems.find(item => item._id === itemId);
-
-            if (!itemInInv) {
-              intReply(
-                int,
-                ephemeralReply(
-                  `Tavs inventāra saturs ir mainījies, šī **${itemString('loto_zivs')}** vairs nav tavā inventārā`,
-                ),
-              );
-              return { end: true };
-            }
-
-            return {
-              edit: {
-                components: lotoZivsComponents(fishInInv, true, itemId),
-              },
-              end: true,
-              after: async () => {
-                const useRes = await loto_zivs(userId, guildId, 'loto_zivs', itemInInv);
-
-                // @ts-ignore būs labi :^)
-                useRes.custom(int, color);
-              },
-            };
-          }
-        },
-        20000,
-      );
+        if (int.customId === 'use_different' && int.componentType === ComponentType.StringSelect) {
+          return useDifferentItemHandler(user, 'loto_zivs', int);
+        }
+      });
     },
   };
 };
