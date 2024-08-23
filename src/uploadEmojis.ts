@@ -1,4 +1,4 @@
-import { REST } from 'discord.js';
+import { APIUser, REST } from 'discord.js';
 import fs from 'fs';
 import path from 'path';
 import validateEnv from './utils/validateEnv';
@@ -61,12 +61,12 @@ function getLocalEmojis(dir: string, depth = 0) {
   });
 }
 
-async function getUploadedEmojis() {
-  const emojis = (await rest.get(Routes.applicationEmojis(process.env.BOT_ID!))) as RESTGetAPIApplicationEmojisResult;
+async function getUploadedEmojis(botId: string) {
+  const emojis = (await rest.get(Routes.applicationEmojis(botId))) as RESTGetAPIApplicationEmojisResult;
   return new Set<string>(emojis.items.map(emoji => emoji.name!));
 }
 
-async function uploadEmojis(uploadSet: Set<string>) {
+async function uploadEmojis(botId: string, uploadSet: Set<string>) {
   const promises: Promise<any>[] = [];
 
   let uploadedCount = 0;
@@ -77,7 +77,7 @@ async function uploadEmojis(uploadSet: Set<string>) {
     promises.push(
       readFile(localEmojis.get(name)!.path, 'base64')
         .then(b64 =>
-          rest.post(Routes.applicationEmojis(process.env.BOT_ID!), {
+          rest.post(Routes.applicationEmojis(botId), {
             body: { name, image: `data:${localEmojis.get(name)!.mimeType};base64,${b64}` },
           }),
         )
@@ -101,10 +101,13 @@ async function uploadEmojis(uploadSet: Set<string>) {
   }
 }
 
+const bot = (await rest.get(Routes.user('@me'))) as APIUser;
+const botId = bot!.id;
+
 const emojisPath = path.join(__dirname, '../assets/emoji');
 
 getLocalEmojis(emojisPath);
-const uploadedEmojis = await getUploadedEmojis();
+const uploadedEmojis = await getUploadedEmojis(botId);
 
 console.log(`\nLocal emoji count: ${localEmojis.size}`);
 console.log(`Uploaded emoji count: ${uploadedEmojis.size}`);
@@ -115,6 +118,6 @@ if (diff.size === 0) {
   console.log(chalk.green('Nothing to upload'));
 } else {
   console.log(`Uploading ${diff.size} emojis...`);
-  await uploadEmojis(diff);
+  await uploadEmojis(botId, diff);
   console.log('\n' + chalk.green('Done!'));
 }

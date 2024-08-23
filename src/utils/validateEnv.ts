@@ -7,7 +7,6 @@ export default function validateEnv(): boolean {
     'BOT_TOKEN',
     'DEV_SERVER_ID',
     'DEV_ID',
-    'BOT_ID',
     'MONGO_PATH',
     'ULMANBOTS_API_URL',
   ];
