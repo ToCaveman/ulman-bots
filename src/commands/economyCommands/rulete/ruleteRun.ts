@@ -1,5 +1,6 @@
 import {
   ActionRowBuilder,
+  BaseInteraction,
   ButtonBuilder,
   ButtonInteraction,
   ButtonStyle,
@@ -9,7 +10,6 @@ import {
 import addLati from '../../../economy/addLati';
 import findUser from '../../../economy/findUser';
 import setStats from '../../../economy/stats/setStats';
-import buttonHandler from '../../../embeds/buttonHandler';
 import commandColors from '../../../embeds/commandColors';
 import embedTemplate from '../../../embeds/embedTemplate';
 import ephemeralReply from '../../../embeds/ephemeralReply';
@@ -17,12 +17,14 @@ import errorEmbed from '../../../embeds/errorEmbed';
 import itemString from '../../../embeds/helpers/itemString';
 import latiString from '../../../embeds/helpers/latiString';
 import itemList from '../../../items/itemList';
-import interactionCache from '../../../utils/interactionCache';
 import intReply from '../../../utils/intReply';
-import generateRulete, { GenerateRuleteRes, RulColors } from './generateRulete';
+import generateRulete, { GenerateRuleteRes } from './generateRulete';
 import { KazinoLikme } from './rulete';
-import { RulPosition, rulPositions } from './ruleteData';
+import { RulColors, RulPosition, rulPositions } from './ruleteData';
 import emoji from '../../../utils/emoji';
+import UserProfile from '../../../interfaces/UserProfile';
+import mongoTransaction from '../../../utils/mongoTransaction';
+import { Dialogs } from '../../../utils/Dialogs';
 
 const colorsLat: Record<RulColors, string> = {
   black: 'melns',
@@ -38,73 +40,75 @@ const rulColor = {
 
 const RULETE_MIN_LIKME = 20;
 
-function ruleteEmbed(
-  i: ChatInputCommandInteraction | ButtonInteraction,
-  position: RulPosition | number,
-  likme: KazinoLikme,
-  likmeLati: number,
-  { num, color, didWin, multiplier }: GenerateRuleteRes,
-  spinning = false
-) {
-  const isLikmeNum = typeof likme === 'number';
-  const isPosNum = typeof position === 'number';
+type State = {
+  user: UserProfile;
+  position: RulPosition | number;
+  likme: KazinoLikme;
+  likmeLati: number;
+  rulRes: GenerateRuleteRes;
+  isSpinning: boolean;
+};
+
+function view(state: State, i: BaseInteraction) {
+  const { num, color, didWin, multiplier } = state.rulRes;
+
+  const canSpinAgain =
+    typeof state.likme === 'number' ? state.user.lati >= state.likme : state.user.lati >= RULETE_MIN_LIKME;
 
   let emojisStr = '';
   for (let j = 0; j < 8; j++) {
-    const key = spinning ? `rul_spin_${j}` : `rul_${num}_${j}`;
+    const key = state.isSpinning ? `rul_spin_${j}` : `rul_${num}_${j}`;
     emojisStr += emoji(key);
     if (j === 3) emojisStr += '\n';
   }
 
-  return embedTemplate({
-    i,
-    color: spinning
-      ? commandColors.rulete
-      : didWin
-      ? isPosNum && position === num
-        ? rulColor.winBig
-        : rulColor.win
-      : rulColor.lose,
-    title: spinning
-      ? 'Griežas...'
-      : didWin
-      ? `Tu laimēji ${latiString(likmeLati * multiplier, true)} (${multiplier}x)`
-      : 'Tu neko nelaimēji (nākamreiz paveiksies)',
-    fields: [
-      {
-        name: spinning ? '\u200B' : `${num} ${colorsLat[color]}`,
-        value:
-          `${emojisStr}\n\n` +
-          `**Likme:** ${latiString(likmeLati)} ${!isLikmeNum ? `(${likme})` : ''} \n` +
-          `**Pozīcija:** ${isPosNum ? position : rulPositions[position].name}`,
-        inline: false,
-      },
-    ],
-  }).embeds;
-}
-
-function rulComponents(position: RulPosition | number, likme: KazinoLikme, lati: number | undefined, spinning = false) {
-  const canSpinAgain = lati === undefined ? true : typeof likme === 'number' ? lati >= likme : lati >= RULETE_MIN_LIKME;
-
-  return [
+  const components = [
     new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
         .setCustomId('rulete_spin_again')
-        .setDisabled(spinning || !canSpinAgain)
-        .setStyle(spinning ? ButtonStyle.Secondary : canSpinAgain ? ButtonStyle.Primary : ButtonStyle.Danger)
+        .setDisabled(state.isSpinning || !canSpinAgain)
+        .setStyle(state.isSpinning ? ButtonStyle.Secondary : canSpinAgain ? ButtonStyle.Primary : ButtonStyle.Danger)
         .setLabel(
           `Griezt vēlreiz | ` +
-            `${typeof position === 'number' ? position : rulPositions[position].shortName} | ` +
-            `${typeof likme === 'number' ? latiString(likme) : likme}`
-        )
+            `${typeof state.position === 'number' ? state.position : rulPositions[state.position].shortName} | ` +
+            `${typeof state.likme === 'number' ? latiString(state.likme) : state.likme}`,
+        ),
     ),
   ];
+
+  return embedTemplate({
+    i,
+    content: '\u200B',
+    color: state.isSpinning
+      ? commandColors.rulete
+      : didWin
+        ? typeof state.position === 'number' && state.position === num
+          ? rulColor.winBig
+          : rulColor.win
+        : rulColor.lose,
+    title: state.isSpinning
+      ? 'Griežas...'
+      : didWin
+        ? `Tu laimēji ${latiString(state.likmeLati * multiplier, true)} (${multiplier}x)`
+        : 'Tu neko nelaimēji (nākamreiz paveiksies)',
+    fields: [
+      {
+        name: state.isSpinning ? '\u200B' : `${num} ${colorsLat[color]}`,
+        value:
+          `${emojisStr}\n\n` +
+          `**Likme:** ${latiString(state.likmeLati)} ${typeof state.likme !== 'number' ? `(${state.likme})` : ''} \n` +
+          `**Pozīcija:** ${typeof state.position === 'number' ? state.position : rulPositions[state.position as RulPosition].name}`,
+        inline: false,
+      },
+    ],
+    components,
+  });
 }
 
 export default async function ruleteRun(
   i: ChatInputCommandInteraction | ButtonInteraction,
   position: RulPosition | number,
-  likme: KazinoLikme
+  likme: KazinoLikme,
 ) {
   const userId = i.user.id;
   const guildId = i.guildId!;
@@ -119,8 +123,8 @@ export default async function ruleteRun(
       i,
       ephemeralReply(
         `Tev vajag vismaz ${latiString(RULETE_MIN_LIKME, true, true)} lai grieztu ruleti\n` +
-          `Tev ir ${latiString(lati, false, true)}`
-      )
+          `Tev ir ${latiString(lati, false, true)}`,
+      ),
     );
   }
 
@@ -129,8 +133,8 @@ export default async function ruleteRun(
       i,
       ephemeralReply(
         `Tu nepietiek naudas lai griezt ruleti ar likmi ${latiString(likme, false, true)}\n` +
-          `Tev ir ${latiString(lati, false, true)}`
-      )
+          `Tev ir ${latiString(lati, false, true)}`,
+      ),
     );
   }
 
@@ -141,9 +145,9 @@ export default async function ruleteRun(
         i,
         ephemeralReply(
           `Lai grieztu ruleti ar likmi \`virve\`, tev inventārā ir jābūt **${itemString(
-            itemList.virve
-          )}** (nopērkama veikalā)`
-        )
+            itemList.virve,
+          )}** (nopērkama veikalā)`,
+        ),
       );
     }
   }
@@ -152,57 +156,57 @@ export default async function ruleteRun(
     typeof likme === 'number'
       ? likme
       : likme === 'virve'
-      ? Math.floor(Math.random() * (lati - RULETE_MIN_LIKME) + RULETE_MIN_LIKME)
-      : lati;
+        ? Math.floor(Math.random() * (lati - RULETE_MIN_LIKME) + RULETE_MIN_LIKME)
+        : lati;
 
   const rulRes = generateRulete(position);
   const latiToAdd = (rulRes.multiplier - 1) * likmeLati;
 
-  const [userAfter, msg] = await Promise.all([
-    addLati(userId, guildId, latiToAdd),
-    intReply(i, {
-      content: '\u200B',
-      embeds: ruleteEmbed(i, position, likme, likmeLati, rulRes, true),
-      components: rulComponents(position, likme, lati, true),
-      fetchReply: true,
-    }),
-    setStats(userId, guildId, {
+  // prettier-ignore
+  const { ok, values } = await mongoTransaction(session => [
+    () => addLati(userId, guildId, latiToAdd, session),
+    () => setStats(userId, guildId, {
       rulBiggestBet: `=${likmeLati}`,
       rulBiggestWin: `=${rulRes.multiplier * likmeLati}`,
       rulSpent: likmeLati,
       rulWon: rulRes.multiplier * likmeLati,
       rulSpinCount: 1,
-    }),
+    }, session),
   ]);
 
-  if (!userAfter || !msg) return;
+  if (!ok) {
+    return intReply(i, errorEmbed);
+  }
 
-  buttonHandler(
-    i,
-    'rulete',
-    msg,
-    async int => {
-      if (int.customId === 'rulete_spin_again' && int.componentType === ComponentType.Button) {
-        return {
-          end: true,
-          after: () => {
-            ruleteRun(int, position, likme);
-          },
-        };
-      }
-    },
-    20000,
-    true,
-    true
-  );
+  const initialState: State = {
+    user: values[0],
+    position,
+    likme,
+    likmeLati,
+    rulRes,
+    isSpinning: true,
+  };
 
-  setTimeout(() => {
-    // guh
-    const a = interactionCache.get(`${userId}-${guildId}`)!.get('rulete')!;
-    interactionCache.get(`${userId}-${guildId}`)?.set('rulete', { ...a, isInteractionActive: false });
-    i.editReply({
-      embeds: ruleteEmbed(i, position, likme, likmeLati, rulRes, false),
-      components: rulComponents(position, likme, userAfter?.lati),
-    }).catch(_ => _);
+  const dialogs = new Dialogs(i, initialState, view, 'rulete', { time: 20000, isActive: true });
+
+  if (!(await dialogs.start())) {
+    return intReply(i, errorEmbed);
+  }
+
+  setTimeout(async () => {
+    dialogs.state.isSpinning = false;
+    await dialogs.edit();
+    dialogs.setActive(false);
   }, 1500);
+
+  dialogs.onClick(async int => {
+    if (int.customId === 'rulete_spin_again' && int.componentType === ComponentType.Button) {
+      return {
+        end: true,
+        after: () => {
+          ruleteRun(int, position, likme);
+        },
+      };
+    }
+  });
 }
