@@ -6,6 +6,7 @@ import {
   ButtonStyle,
   ChatInputCommandInteraction,
   ComponentType,
+  InteractionReplyOptions,
 } from 'discord.js';
 import addItems from '../../../economy/addItems';
 import addLati from '../../../economy/addLati';
@@ -72,7 +73,7 @@ type State = {
   selected: 'ja' | 'ne' | null;
 };
 
-function pardotVisuView(state: State, i: BaseInteraction) {
+function pardotVisuView(state: State, i: BaseInteraction): InteractionReplyOptions & { fetchReply: true } {
   if (state.selected === 'ja') {
     return pardotEmbed(i, state.user, state.itemsToSell, state.soldItemsValue);
   }
@@ -92,12 +93,15 @@ function pardotVisuView(state: State, i: BaseInteraction) {
     ),
   ];
 
-  return embedTemplate({
-    i,
-    description: 'Vai tiešām gribi pārdot **VISAS** savas mantas? (bīstami)',
-    color: commandColors.pardot,
+  // prettier-ignore
+  return {
+    embeds: [{
+      description: 'Vai tiešām gribi pārdot **VISAS** savas mantas? (bīstami)',
+      color: commandColors.pardot,
+    }],
+    fetchReply: true,
     components,
-  });
+  };
 }
 
 export default async function pardotRun(
