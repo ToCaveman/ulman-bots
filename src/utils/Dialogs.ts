@@ -186,7 +186,7 @@ export class Dialogs<T extends { [key: string]: any }> {
       }
 
       if (res.update) {
-        this.update(componentInteraction);
+        await this.update(componentInteraction);
       }
 
       if (res.after) {
