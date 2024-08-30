@@ -15,13 +15,13 @@ interface PardotValidateReturn {
   item: Item;
 }
 
-const pardotValidate = async (
+async function pardotValidate(
   i: ChatInputCommandInteraction,
   user: UserProfile,
   itemToSellKey: string,
   amountToSell: number,
-  embedColor: number
-): Promise<PardotValidateReturn | undefined> => {
+  embedColor: number,
+): Promise<PardotValidateReturn | undefined> {
   if (itemToSellKey === 'no-items-inv') {
     await intReply(i, emptyInvEmbed());
     return;
@@ -47,7 +47,7 @@ const pardotValidate = async (
       return;
     }
 
-    await pardotRunSpecial(i, itemToSellKey, specialItemsInv, embedColor);
+    await pardotRunSpecial(i, user, itemToSellKey, specialItemsInv, embedColor);
     return;
   }
 
@@ -62,6 +62,6 @@ const pardotValidate = async (
     amount: itemInInv.amount < amountToSell ? itemInInv.amount : amountToSell,
     item: itemToSell,
   };
-};
+}
 
 export default pardotValidate;

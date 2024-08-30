@@ -1,5 +1,6 @@
 import {
   ActionRowBuilder,
+  BaseInteraction,
   ButtonBuilder,
   ButtonStyle,
   ChatInputCommandInteraction,
@@ -10,7 +11,6 @@ import addLati from '../../../economy/addLati';
 import findUser from '../../../economy/findUser';
 import removeItemsById from '../../../economy/removeItemsById';
 import setStats from '../../../economy/stats/setStats';
-import buttonHandler from '../../../embeds/buttonHandler';
 import embedTemplate from '../../../embeds/embedTemplate';
 import ephemeralReply from '../../../embeds/ephemeralReply';
 import errorEmbed from '../../../embeds/errorEmbed';
@@ -23,13 +23,29 @@ import itemList, { ItemKey } from '../../../items/itemList';
 import intReply from '../../../utils/intReply';
 import { attributeItemSort } from '../inventars/inventars';
 import { PIRKT_PARDOT_NODOKLIS } from './pardot';
+import { Dialogs } from '../../../utils/Dialogs';
+import mongoTransaction from '../../../utils/mongoTransaction';
 
-function makeComponents(
-  itemsInInv: SpecialItemInProfile[],
-  itemObj: AttributeItem<ItemAttributes>,
-  selectedIds: string[],
-) {
-  return [
+type State = {
+  user: UserProfile;
+  color: number;
+  itemsInInv: SpecialItemInProfile[];
+  itemObj: AttributeItem<ItemAttributes>;
+  selectedIds: string[];
+
+  didSell: boolean;
+  soldItems: SpecialItemInProfile[];
+  soldValue: number;
+};
+
+function view(state: State, i: BaseInteraction) {
+  if (state.didSell) {
+    return soldEmbed(i, state.user, state.soldItems, state.soldValue, state.color);
+  }
+
+  const { itemObj, itemsInInv, selectedIds } = state;
+
+  const components = [
     new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
       new StringSelectMenuBuilder()
         .setCustomId('pardot_special_select')
@@ -70,10 +86,19 @@ function makeComponents(
         .setStyle(selectedIds.length ? ButtonStyle.Primary : ButtonStyle.Secondary),
     ),
   ];
+
+  return embedTemplate({
+    i,
+    color: state.color,
+    description:
+      `Tavā inventārā ir **${itemString(itemObj, itemsInInv.length)}**\n` +
+      `No saraksta izvēlies vienu vai vairākas mantas ko pārdot`,
+    components,
+  });
 }
 
-function makeEmbed(
-  i: ChatInputCommandInteraction,
+function soldEmbed(
+  i: BaseInteraction,
   user: UserProfile,
   soldItems: SpecialItemInProfile[],
   soldValue: number,
@@ -97,6 +122,7 @@ function makeEmbed(
 
 export default async function pardotRunSpecial(
   i: ChatInputCommandInteraction,
+  user: UserProfile,
   itemKey: ItemKey,
   itemsInInv: SpecialItemInProfile[],
   embedColor: number,
@@ -105,7 +131,6 @@ export default async function pardotRunSpecial(
   const guildId = i.guildId!;
 
   const itemObj = itemList[itemKey] as AttributeItem<ItemAttributes>;
-  let selectedIds: string[] = [];
 
   if (itemsInInv.length === 1) {
     const soldValue =
@@ -113,96 +138,84 @@ export default async function pardotRunSpecial(
 
     const taxPaid = Math.floor(soldValue * PIRKT_PARDOT_NODOKLIS);
 
-    await Promise.all([
-      addLati(i.client.user!.id, guildId, taxPaid),
-      addLati(userId, guildId, soldValue),
-      setStats(userId, guildId, { soldShop: soldValue, taxPaid }),
+    const { ok, values } = await mongoTransaction(session => [
+      () => addLati(i.client.user!.id, guildId, taxPaid, session),
+      () => addLati(userId, guildId, soldValue, session),
+      () => setStats(userId, guildId, { soldShop: soldValue, taxPaid }, session),
+      () => removeItemsById(userId, guildId, [itemsInInv[0]._id!], session),
     ]);
 
-    const user = await removeItemsById(userId, guildId, [itemsInInv[0]._id!]);
-    if (!user) return intReply(i, errorEmbed);
+    if (!ok) return intReply(i, errorEmbed);
 
-    return intReply(i, makeEmbed(i, user, itemsInInv, soldValue, embedColor));
+    return intReply(i, soldEmbed(i, values[3], itemsInInv, soldValue, embedColor));
   }
 
-  const msg = await intReply(
-    i,
-    embedTemplate({
-      i,
-      color: embedColor,
-      description:
-        `Tavā inventārā ir **${itemString(itemObj, itemsInInv.length)}**\n` +
-        `No saraksta izvēlies vienu vai vairākas mantas kuras pārdot`,
-      components: makeComponents(itemsInInv, itemObj, selectedIds),
-    }),
-  );
+  const initialState: State = {
+    user,
+    color: embedColor,
+    itemsInInv,
+    itemObj,
+    selectedIds: [],
 
-  if (!msg) return;
+    didSell: false,
+    soldItems: [],
+    soldValue: 0,
+  };
 
-  buttonHandler(
-    i,
-    'pardot',
-    msg,
-    async int => {
-      const { customId } = int;
-      if (customId === 'pardot_special_select') {
-        if (int.componentType !== ComponentType.StringSelect) return;
-        selectedIds = int.values;
-        return {
-          edit: {
-            components: makeComponents(itemsInInv, itemObj, selectedIds),
-          },
-        };
-      } else if (customId === 'pardot_special_confirm') {
-        if (int.componentType !== ComponentType.Button) return;
-        const selectedItems = itemsInInv.filter(item => selectedIds.includes(item._id!));
-        const soldValue = selectedItems.reduce((p, { attributes }) => {
-          return (
-            p + ('customValue' in itemObj && itemObj.customValue ? itemObj.customValue(attributes) : itemObj.value)
-          );
-        }, 0);
+  const dialogs = new Dialogs(i, initialState, view, 'pardot', { time: 60000 });
 
-        if (!selectedItems.length) return;
+  if (!(await dialogs.start())) {
+    return intReply(i, errorEmbed);
+  }
 
-        const user = await findUser(userId, guildId);
-        if (!user) return { error: true };
+  dialogs.onClick(async (int, state) => {
+    const { customId, componentType } = int;
+    if (customId === 'pardot_special_select' && componentType === ComponentType.StringSelect) {
+      state.selectedIds = int.values;
+      return { update: true };
+    } else if (customId === 'pardot_special_confirm' && componentType === ComponentType.Button) {
+      const user = await findUser(userId, guildId);
+      if (!user) return { error: true };
 
-        const userItemIds = user.specialItems.map(item => item._id!);
-        for (const id of selectedIds) {
-          if (!userItemIds.includes(id)) {
-            return {
-              end: true,
-              after: () => {
-                intReply(
-                  int,
-                  ephemeralReply(
-                    '**Kļūda:** tavs inventāra saturs ir mainījies, kāda no izvēlētām mantām vairs nav tavā inventārā',
-                  ),
-                );
-              },
-            };
-          }
-        }
+      const userItemIds = user.specialItems.map(item => item._id!);
+      const hasEvery = state.selectedIds.every(id => userItemIds.includes(id));
 
-        const taxPaid = Math.floor(soldValue * PIRKT_PARDOT_NODOKLIS);
+      if (!hasEvery) {
+        // prettier-ignore
+        intReply(int, ephemeralReply(
+          'Tava inventāra saturs ir mainījies, kāda no izvēlētām mantām vairs nav tavā inventārā'
+        ));
 
-        await Promise.all([
-          addLati(i.client.user!.id, guildId, taxPaid),
-          addLati(userId, guildId, soldValue),
-          setStats(userId, guildId, { soldShop: soldValue, taxPaid }),
-        ]);
-
-        const userAfter = await removeItemsById(userId, guildId, selectedIds);
-        if (!userAfter) return { error: true };
-
-        return {
-          edit: {
-            embeds: makeEmbed(i, userAfter, selectedItems, soldValue, embedColor).embeds,
-            components: [],
-          },
-        };
+        return { end: true };
       }
-    },
-    60000,
-  );
+
+      const selectedItems = itemsInInv.filter(item => state.selectedIds.includes(item._id!));
+      const soldValue = selectedItems.reduce((p, { attributes }) => {
+        return p + ('customValue' in itemObj && itemObj.customValue ? itemObj.customValue(attributes) : itemObj.value);
+      }, 0);
+
+      if (!selectedItems.length) return;
+
+      const taxPaid = Math.floor(soldValue * PIRKT_PARDOT_NODOKLIS);
+
+      const { ok, values } = await mongoTransaction(session => [
+        () => addLati(i.client.user!.id, guildId, taxPaid, session),
+        () => addLati(userId, guildId, soldValue, session),
+        () => setStats(userId, guildId, { soldShop: soldValue, taxPaid }, session),
+        () => removeItemsById(userId, guildId, state.selectedIds, session),
+      ]);
+
+      if (!ok) return { error: true };
+
+      state.didSell = true;
+      state.user = values[3];
+      state.soldItems = selectedItems;
+      state.soldValue = soldValue;
+
+      return {
+        update: true,
+        end: true,
+      };
+    }
+  });
 }

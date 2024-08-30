@@ -11,6 +11,7 @@ import addLati from '../../../economy/addLati';
 import ephemeralReply from '../../../embeds/ephemeralReply';
 import setStats from '../../../economy/stats/setStats';
 import intReply from '../../../utils/intReply';
+import mongoTransaction from '../../../utils/mongoTransaction';
 
 export const PIRKT_PARDOT_NODOKLIS = 0.05;
 
@@ -92,15 +93,16 @@ const pardot: Command = {
 
       const taxPaid = Math.floor(soldItemsValue * PIRKT_PARDOT_NODOKLIS);
 
-      await Promise.all([
-        addItems(userId, guildId, { [key]: -amount }),
-        addLati(i.client.user!.id, guildId, taxPaid),
-        setStats(userId, guildId, { soldShop: soldItemsValue, taxPaid }),
+      const { ok, values } = await mongoTransaction(session => [
+        () => addItems(userId, guildId, { [key]: -amount }, session),
+        () => addLati(i.client.user!.id, guildId, taxPaid, session),
+        () => addLati(userId, guildId, soldItemsValue, session),
+        () => setStats(userId, guildId, { soldShop: soldItemsValue, taxPaid }, session),
       ]);
 
-      await addLati(userId, guildId, soldItemsValue);
+      if (!ok) return intReply(i, errorEmbed);
 
-      intReply(i, pardotEmbed(i, user, itemsToSell, soldItemsValue));
+      intReply(i, pardotEmbed(i, values[2], itemsToSell, soldItemsValue));
     }
   },
 };
