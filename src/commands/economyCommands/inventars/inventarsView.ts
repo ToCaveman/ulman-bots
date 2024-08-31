@@ -17,10 +17,10 @@ export type InventarsState = {
   itemTypesInInv: ItemType[];
   totalInvValue: number;
   itemCount: number;
-  buttonsPressed: Set<('visas' | 'neizmantojamas')>,
+  buttonsPressed: Set<'visas' | 'neizmantojamas'>;
 };
 
-function sellRow({ items }: UserProfile, buttonsPressed: Set<('visas' | 'neizmantojamas')>) {
+function sellRow({ items }: UserProfile, buttonsPressed: Set<'visas' | 'neizmantojamas'>) {
   const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setCustomId('inv_pardot_visas')
@@ -72,7 +72,7 @@ export function inventarsView(state: InventarsState, i: BaseInteraction) {
           (state.itemCount % 10 === 1 && state.itemCount % 100 !== 11 ? 'manta' : 'mantas') +
           ` no **${itemCap}**\n` +
           `Inventāra vērtība: ${latiString(state.totalInvValue, false, true)}\n\n` +
-          state.itemTypesInInv.map(t => `${itemTypes[t].emoji()} - ${itemTypes[t].text}\n`).join('') +
+          state.itemTypesInInv.map(t => `-# ${itemTypes[t].emoji()} - ${itemTypes[t].textCompact}\n`).join('') +
           '\u2800'
         : 'Tev nav nevienas mantas (diezgan bēdīgi)\nIzmanto komandu `/palidziba`',
     color: commandColors.inventars,

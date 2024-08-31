@@ -21,21 +21,25 @@ import { Dialogs } from '../../../utils/Dialogs';
 
 export type ItemType = 'not_usable' | 'usable' | 'special' | 'not_sellable';
 
-export const itemTypes: Record<ItemType, { text: string; emoji: () => string }> = {
+export const itemTypes: Record<ItemType, { text: string; textCompact: string; emoji: () => string }> = {
   not_sellable: {
     text: 'īpaša izmantojama un **nepārdodama** un manta',
+    textCompact: 'izmantojams (nepārdodams)',
     emoji: () => emoji('icon_check3'),
   },
   special: {
     text: 'izmantojama manta ar atribūtiem',
+    textCompact: 'izmantojams (ar atribūtiem)',
     emoji: () => emoji('icon_check2'),
   },
   usable: {
     text: 'izmantojama manta',
+    textCompact: 'izmantojams',
     emoji: () => emoji('icon_check1'),
   },
   not_usable: {
     text: 'neizmantojama manta',
+    textCompact: 'neizmantojams',
     emoji: () => emoji('icon_cross'),
   },
 };
