@@ -1,5 +1,14 @@
 /* eslint-disable func-names */
-import Item, { AttributeItem, BaseItem, item, LotoItem, ShopItem, TirgusItem, UsableItem } from '../interfaces/Item';
+import Item, {
+  AttributeItem,
+  BaseItem,
+  item,
+  LotoItem,
+  NotSellableItem,
+  ShopItem,
+  TirgusItem,
+  UsableItem,
+} from '../interfaces/Item';
 import virve from './usableItems/virve';
 import divainais_burkans from './usableItems/divainais_burkans';
 import mugursoma, { INCREASE_CAP_1, INV_INCREASE_AMOUNT_1 } from './usableItems/mugursoma';
@@ -1183,6 +1192,7 @@ const itemList: { [key: ItemKey]: Item } = {
     use: ievarijums
   }),
 
+  // TODO: noņemt
   roltons: item<UsableItem>({
     info: 'Patiesi viena no visu laiku labākajām maltītēm',
     addedInVersion: '4.3',
@@ -1202,25 +1212,26 @@ const itemList: { [key: ItemKey]: Item } = {
   // granulu katls
   // cena 5700 lati
 
-  // patriota_piespraude: item<NotSellableItem>({
-  //   nameNomVsk: 'patriotu piespraude',
-  //   nameNomDsk: 'patriotu piespraudes',
-  //   nameAkuVsk: 'patriotu piespraudi',
-  //   nameAkuDsk: 'patriotu piespraudes',
-  //   isVirsiesuDzimte: false,
-  //   emoji: {
-  //     id: '1037454453990764636',
-  //     name: 'piespraude',
-  //   },
-  //   imgLink: null,
-  //   categories: [ItemCategory.OTHER],
-  //   value: 0,
-  //   notSellable: true,
-  //   attributes: {
-  //     piespraudeNum: 0,
-  //   },
-  //   use: () => ({ text: 'chau' }),
-  // }),
+  // TODO: noņemt
+  patriota_piespraude: item<AttributeItem<{ piespraudeNum: number }> & NotSellableItem>({
+    info: '...',
+    addedInVersion: '4.3',
+    nameNomVsk: 'patriotu piespraude',
+    nameNomDsk: 'patriotu piespraudes',
+    nameAkuVsk: 'patriotu piespraudi',
+    nameAkuDsk: 'patriotu piespraudes',
+    isVirsiesuDzimte: false,
+    emoji: () => emoji('piespraude'),
+    imgLink: null,
+    categories: [ItemCategory.OTHER],
+    value: 0,
+    notSellable: true,
+    attributes: () => ({
+      piespraudeNum: 0,
+    }),
+    sortBy: { piespraudeNum: 1 },
+    use: () => ({ text: 'chau' }),
+  }),
 
   // -- brīvgriezieni --
   brivgriez10: item<UsableItem>({
